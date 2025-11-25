@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editable Training Plan Form (Refined Presentation)</title>
+    <title>AI-Powered Training Plan Proposal Form (Segmented Gender Control)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Chosen Palette: Modern Indigo/Lavender (Background: #f8f9fa, Primary Accent: #4B0082, Secondary/Header: #D3A5FF, Text/Border: #A08ABF, Success: #2E8B57) */
+        /* Chosen Palette: Modern Indigo/Lavender (Background: #f8f9fa, Primary Accent: #4B0082, Secondary/Header: #D3A5FF, Text/Border: #A08ABF, Error: #D9534F) */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa; /* Very Light Grey */
         }
-        
-        /* The main wrapper for a label/input pair */
+
+        /* Utility classes for the form */
         .field-wrapper {
+            /* Input and Label are stacked vertically inside this wrapper */
             @apply flex flex-col space-y-1 p-3 transition-all duration-150;
         }
 
@@ -21,611 +22,884 @@
             /* Left-aligned, strong label for better scanning */
             @apply block text-sm font-extrabold uppercase text-gray-700 tracking-wider;
         }
-        
+
         .form-input {
             /* Standard editable input style */
             @apply w-full p-3 border border-gray-300 rounded-lg text-base text-gray-800 shadow-sm
                    focus:ring-2 focus:ring-[#4B0082] focus:border-[#4B0082] transition-colors duration-200;
         }
         
-        /* Style for read-only fields */
         .form-input[readonly] {
-            @apply bg-gray-100 text-gray-600 border-dashed border-gray-300 cursor-default shadow-none;
+            @apply bg-gray-100 cursor-not-allowed border-dashed;
         }
 
-        .accordion-item {
-            /* Main container for the section */
-            @apply rounded-xl bg-white shadow-2xl;
+        .form-textarea {
+            /* Standard editable textarea style */
+            @apply form-input min-h-[100px] resize-y;
         }
+        
+        /* Removed custom .form-select styles to fix the icon issue */
+        
+        /* Segmented Control Styles */
+        .segmented-control {
+            @apply flex w-full border border-gray-300 rounded-lg overflow-hidden shadow-sm;
+        }
+        .segmented-control input[type="radio"] {
+            /* Hide the native radio button */
+            @apply hidden;
+        }
+        .segmented-control label {
+            /* Style the label as the clickable segment */
+            @apply flex-1 text-center py-3 text-base font-medium text-gray-700 cursor-pointer 
+                   hover:bg-gray-100 transition-colors duration-200;
+        }
+        /* Style when a radio button is checked (using the sibling selector 'peer') */
+        .segmented-control input[type="radio"]:checked + label {
+            @apply bg-[#4B0082] text-white font-bold shadow-inner;
+        }
+
 
         .accordion-header {
-            background-color: #4B0082; /* Deep Indigo Header */
-            @apply w-full text-left p-5 rounded-t-xl font-extrabold text-white hover:bg-opacity-90 transition-colors duration-200 flex justify-between items-center cursor-pointer text-xl shadow-md;
+            /* Ensure it uses flex and space-between to push the arrow to the right of the title */
+            @apply flex justify-between items-center w-full p-4 text-left font-bold text-lg text-[#4B0082] bg-white border-b border-[#D3A5FF] cursor-pointer hover:bg-gray-50 transition-colors duration-200 rounded-t-lg;
         }
-        
-        .accordion-header.rounded-b-none {
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-        }
-        
+
         .accordion-content {
-            /* This container controls the smooth vertical transition */
-            @apply overflow-hidden transition-all duration-500 ease-in-out border border-gray-200 border-t-0 rounded-b-xl;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 0;
+            padding: 0 1rem;
+        }
+
+        .accordion-content.active {
+            padding: 1rem;
+        }
+
+        .icon-rotate {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .accordion-header[aria-expanded="true"] .icon-rotate {
+            transform: rotate(180deg);
         }
         
-        .content-wrapper {
-            /* Grid container for fields */
-            @apply p-6 bg-white rounded-b-xl;
-        }
-        
+        /* Custom Button Styles (Primary retained, Save/Submit removed) */
         .btn-primary {
-            background-color: #4B0082; /* Deep Indigo */
-            @apply text-white py-3 px-8 rounded-full font-bold hover:opacity-90 transition-opacity duration-200 shadow-2xl tracking-wider;
+            @apply bg-[#4B0082] text-white hover:bg-indigo-700 active:bg-indigo-800 transition-colors duration-200 px-6 py-3 rounded-xl font-bold shadow-lg;
         }
-        
-        .btn-save {
-            background-color: #2E8B57; /* Sea Green (Success) */
-            @apply text-white py-3 px-8 rounded-full font-bold hover:opacity-90 transition-colors duration-200 shadow-2xl tracking-wider;
+
+        .message-box {
+            @apply p-4 rounded-xl font-medium shadow-md transition-opacity duration-300;
         }
-        
-        .alert-box {
-            @apply p-4 rounded-xl bg-[#D3A5FF] bg-opacity-30 border-l-4 border-[#4B0082] font-medium text-sm;
+
+        .message-box.error {
+            @apply bg-red-100 text-red-800 border border-red-300;
+        }
+
+        .message-box.success {
+            @apply bg-green-100 text-green-800 border border-green-300;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #4B0082;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body class="antialiased">
-    <div class="max-w-6xl mx-auto p-4 md:p-8">
-
-        <header class="mb-10 pb-4 border-b-4 border-[#D3A5FF]">
-            <h1 class="text-4xl md:text-5xl font-black text-[#4B0082]">Training Plan Proposal</h1>
-            <p class="text-xl text-gray-600 mt-2">Ashley McNeilage - VTO ID 7797</p>
+<body>
+    <div class="max-w-4xl mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-[#4B0082] mb-2">Training Plan Proposal Editor</h1>
+            <p class="text-lg text-gray-600">Upload or manually enter all required contract details.</p>
         </header>
 
-        <form id="training-plan-form" class="space-y-6">
+        <!-- Main Form Container -->
+        <form id="training-plan-form" class="bg-white rounded-xl shadow-2xl overflow-hidden">
 
-            <!-- Section 1.1: Personal Details -->
-            <div class="accordion-item">
-                <button type="button" class="accordion-header rounded-b-none" data-section="section1-1">
+            <!-- UPLOAD SECTION -->
+            <div class="p-6 bg-[#D3A5FF] bg-opacity-30 border-b border-[#4B0082]">
+                <h2 class="text-xl font-bold text-[#4B0082] mb-2 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Auto-Populate from Document (PDF/Image)
+                </h2>
+                <p class="text-sm text-gray-600 mb-4">Upload a Training Plan Proposal document. We'll extract the data and validate the document heading.</p>
+
+                <div id="file-upload-area" class="mb-4">
+                    <input type="file" id="document-upload" accept=".pdf,image/*"
+                           class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#4B0082] file:text-white hover:file:bg-indigo-700 transition-colors"
+                           onchange="handleFileUpload(event)">
+                </div>
+
+                <!-- Message Box for Upload Status -->
+                <div id="upload-message-container" class="mt-4 min-h-[40px]">
+                    <!-- Messages will be injected here -->
+                </div>
+            </div>
+
+            <!-- ACCORDION SECTION 1.1: TRAINEE DETAILS -->
+            <div class="accordion-item border-b border-gray-200">
+                <button type="button" class="accordion-header" aria-expanded="true" data-target="content-1-1">
                     <span>1.1 Apprentice/Trainee Personal Details</span>
-                    <span class="arrow text-2xl transform transition-transform duration-500 rotate-180">▼</span>
+                    <svg class="w-6 h-6 icon-rotate" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div class="accordion-content active" data-section="section1-1">
-                    <div class="content-wrapper">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            
-                            <!-- Given Name -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="givenName">Given Name</label>
-                                <input type="text" id="givenName" class="form-input" value="Ashley">
-                            </div>
-                            <!-- Family Name -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="familyName">Family Name</label>
-                                <input type="text" id="familyName" class="form-input" value="McNeilage">
-                            </div>
-                            <!-- Middle Name -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="middleName">Middle Name</label>
-                                <input type="text" id="middleName" class="form-input" value="">
-                            </div>
-
-                            <!-- Date of Birth -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="dob">Date of Birth</label>
-                                <input type="text" id="dob" class="form-input" value="04/10/2005" pattern="\d{2}/\d{2}/\d{4}" placeholder="DD/MM/YYYY">
-                            </div>
-                            <!-- Gender (Select) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="gender">Gender</label>
-                                <select id="gender" class="form-input">
-                                    <option value="Unspecified">Unspecified</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female" selected>Female</option>
-                                </select>
-                            </div>
-                            <!-- Aboriginal or Torres Strait Islander origin? (Yes/No) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="atsi">Aboriginal or Torres Strait Islander origin?</label>
-                                <select id="atsi" class="form-input">
-                                    <option value="No" selected>No</option>
-                                    <option value="Yes">Yes</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Street Address (Full Width) -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="streetAddress">Street Address</label>
-                                <input type="text" id="streetAddress" class="form-input" value="24 Woodside Dr">
-                            </div>
-
-                            <!-- Suburb -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="suburb">Suburb</label>
-                                <input type="text" id="suburb" class="form-input" value="MOSS VALE">
-                            </div>
-                            <!-- State -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="state">State</label>
-                                <input type="text" id="state" class="form-input" value="NSW">
-                            </div>
-                            <!-- Postcode (AU Format) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="postcode">Postcode</label>
-                                <input type="text" id="postcode" class="form-input" value="2577" pattern="[0-9]{4}" maxlength="4" placeholder="e.g., 2000">
-                            </div>
-
-                            <!-- Mobile (AU Format) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="mobile">Mobile</label>
-                                <input type="tel" id="mobile" class="form-input" value="0402232903" pattern="04[0-9]{8}" placeholder="04XXXXXXXX">
-                            </div>
-                            <!-- Telephone -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="telephone">Telephone</label>
-                                <input type="tel" id="telephone" class="form-input" value="">
-                            </div>
-                            <!-- Support Indicator (Yes/No) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="supportIndicator">Support Indicator</label>
-                                <select id="supportIndicator" class="form-input">
-                                    <option value="No" selected>No</option>
-                                    <option value="Yes">Yes</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Email (Full Width) -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="email">Email</label>
-                                <input type="email" id="email" class="form-input" value="mcneilageashley@icloud.com">
-                            </div>
+                <div id="content-1-1" class="accordion-content active">
+                    <div class="inner-content grid grid-cols-1 gap-4">
+                        <div class="field-wrapper">
+                            <label for="givenName" class="form-label">Given Name</label>
+                            <input type="text" id="givenName" name="givenName" class="form-input" placeholder="e.g., Alex" required>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 1.2: Training Details -->
-            <div class="accordion-item">
-                <button type="button" class="accordion-header" data-section="section1-2">
-                    <span>1.2 Training Details</span>
-                    <span class="arrow text-2xl transform transition-transform duration-500">►</span>
-                </button>
-                <div class="accordion-content" data-section="section1-2">
-                    <div class="content-wrapper">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                            <!-- Contract Type (READ-ONLY) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="contractType">Contract Type</label>
-                                <input type="text" id="contractType" class="form-input" value="New Entrant Trainee (Checked)" readonly>
-                            </div>
-                            <!-- Employment Type -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employmentType">Employment Type</label>
-                                <input type="text" id="employmentType" class="form-input" value="Part Time (Checked)">
-                            </div>
-                            <!-- Hours per week -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="hoursPerWeek">Hours per week</label>
-                                <input type="number" id="hoursPerWeek" class="form-input" value="21.0">
-                            </div>
-
-                            <!-- TC Start Date -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="tcStartDate">TC Start Date</label>
-                                <input type="text" id="tcStartDate" class="form-input" value="01/08/2025" pattern="\d{2}/\d{2}/\d{4}" placeholder="DD/MM/YYYY">
-                            </div>
-                            <!-- TC End Date -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="tcEndDate">TC End Date</label>
-                                <input type="text" id="tcEndDate" class="form-input" value="31/07/2027" pattern="\d{2}/\d{2}/\d{4}" placeholder="DD/MM/YYYY">
-                            </div>
-                             <!-- VTO ID (READ-ONLY) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="vtoID">VTO ID</label>
-                                <input type="text" id="vtoID" class="form-input" value="7797" readonly>
-                            </div>
-
-                            <!-- Vocation Title -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="vocationTitle">Vocation Title</label>
-                                <input type="text" id="vocationTitle" class="form-input" value="Health - Dental Assisting Certificate III">
-                            </div>
-                            <!-- Qualification Title -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="qualificationTitle">Qualification Title</label>
-                                <input type="text" id="qualificationTitle" class="form-input" value="Certificate III in Dental Assisting">
-                            </div>
-                            
-                            <!-- National Code -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="nationalCode">National Code</label>
-                                <input type="text" id="nationalCode" class="form-input" value="HLT35021">
-                            </div>
-                            <!-- Qualification Level -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="qualificationLevel">Qualification Level</label>
-                                <input type="text" id="qualificationLevel" class="form-input" value="Cert III">
-                            </div>
-                            <!-- Disability (READ-ONLY) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="disability">Disability</label>
-                                <input type="text" id="disability" class="form-input" value="No (Checked)" readonly>
-                            </div>
-                            
-                            <!-- Mode of Delivery (READ-ONLY) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="modeOfDelivery">Mode of Delivery</label>
-                                <input type="text" id="modeOfDelivery" class="form-input" value="RTO Classroom (Checked)" readonly>
-                            </div>
-                            <!-- Funding Source (READ-ONLY) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="fundingSource">Funding Source</label>
-                                <input type="text" id="fundingSource" class="form-input" value="ACAP (Checked)" readonly>
-                            </div>
-                            <!-- Empty slot for alignment -->
-                            <div></div> 
-
-                            <!-- RTO Training Address (Full Width) -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="rtoTrainingAddress">RTO Training Address (if applicable)</label>
-                                <input type="text" id="rtoTrainingAddress" class="form-input" value="Shop 2, 163-173 Remembrance driveway, TAHMOOR NSW 2573">
-                            </div>
+                        <div class="field-wrapper">
+                            <label for="familyName" class="form-label">Family Name</label>
+                            <input type="text" id="familyName" name="familyName" class="form-input" placeholder="e.g., Johnson" required>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 1.4: Registered Training Organisation -->
-            <div class="accordion-item">
-                <button type="button" class="accordion-header" data-section="section1-4">
-                    <span>1.4 Registered Training Organisation (RTO)</span>
-                    <span class="arrow text-2xl transform transition-transform duration-500">►</span>
-                </button>
-                <div class="accordion-content" data-section="section1-4">
-                    <div class="content-wrapper">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            
-                            <!-- RTO Legal Name (Full Width) -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="rtoLegalName">Legal Name</label>
-                                <input type="text" id="rtoLegalName" class="form-input" value="NSW Dental Assistants (Professional) Association Inc">
-                            </div>
-
-                            <!-- RTO National Code -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="rtoNationalCode">RTO National Code</label>
-                                <input type="text" id="rtoNationalCode" class="form-input" value="90424">
-                            </div>
-                            <!-- Trading Name -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="rtoTradingName">Trading Name</label>
-                                <input type="text" id="rtoTradingName" class="form-input" value="DAPA">
-                            </div>
-                            <!-- ABN -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="rtoABN">ABN</label>
-                                <input type="text" id="rtoABN" class="form-input" value="">
-                            </div>
-                            
-                            <!-- RTO Start Date -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="rtoStartDate">RTO Start Date</label>
-                                <input type="text" id="rtoStartDate" class="form-input" value="01/08/2025" pattern="\d{2}/\d{2}/\d{4}" placeholder="DD/MM/YYYY">
-                            </div>
-                            <!-- Estimated RTO End Date -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="estimatedRTOEndDate">Estimated RTO End Date</label>
-                                <input type="text" id="estimatedRTOEndDate" class="form-input" value="31/07/2027" pattern="\d{2}/\d{2}/\d{4}" placeholder="DD/MM/YYYY">
-                            </div>
-                             <!-- Contact Name -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="rtoContactName">Contact Name</label>
-                                <input type="text" id="rtoContactName" class="form-input" value="Barbara Hayes">
-                            </div>
-
-                            <!-- Telephone -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="rtoTelephone">Telephone</label>
-                                <input type="tel" id="rtoTelephone" class="form-input" value="0295693220">
-                            </div>
-                            <!-- Mobile -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="rtoMobile">Mobile</label>
-                                <input type="tel" id="rtoMobile" class="form-input" value="">
-                            </div>
-                            <!-- Empty slot for alignment -->
-                            <div></div> 
-
-                            <!-- Email (Full Width) -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="rtoEmail">Email</label>
-                                <input type="email" id="rtoEmail" class="form-input" value="office@dapa.asn.au">
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 1.5: Employer Details -->
-            <div class="accordion-item">
-                <button type="button" class="accordion-header" data-section="section1-5">
-                    <span>1.5 Employer Details</span>
-                    <span class="arrow text-2xl transform transition-transform duration-500">►</span>
-                </button>
-                <div class="accordion-content" data-section="section1-5">
-                    <div class="content-wrapper">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            
-                            <!-- Legal Name (Full Width) -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="employerLegalName">Legal Name</label>
-                                <input type="text" id="employerLegalName" class="form-input" value="Orange Soules Pty L ATF Sisle Discreconary The">
-                            </div>
-
-                            <!-- Trading Name -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employerTradingName">Trading Name</label>
-                                <input type="text" id="employerTradingName" class="form-input" value="Tahmoor Dental">
-                            </div>
-                            <!-- ABN -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employerABN">ABN</label>
-                                <input type="text" id="employerABN" class="form-input" value="64811381120">
-                            </div>
-                            <!-- Licence No. -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employerLicenceNo">Licence No.</label>
-                                <input type="text" id="employerLicenceNo" class="form-input" value="">
-                            </div>
-                            
-                            <!-- Street Address (Full Width) -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="employerStreetAddress">Street Address</label>
-                                <input type="text" id="employerStreetAddress" class="form-input" value="Shop 2, 163-173 Remembrance driveway,">
-                            </div>
-                            
-                            <!-- Suburb -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employerSuburb">Suburb</label>
-                                <input type="text" id="employerSuburb" class="form-input" value="TAHMOOR">
-                            </div>
-                            <!-- State -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employerState">State</label>
-                                <input type="text" id="employerState" class="form-input" value="NSW">
-                            </div>
-                            <!-- Postcode (AU Format) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employerPostcode">Postcode</label>
-                                <input type="text" id="employerPostcode" class="form-input" value="2573" pattern="[0-9]{4}" maxlength="4" placeholder="e.g., 2000">
-                            </div>
-                            
-                            <!-- Contact Name -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employerContactName">Contact Name</label>
-                                <input type="text" id="employerContactName" class="form-input" value="Nilesh Gujar">
-                            </div>
-                            <!-- Mobile (AU Format) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employerMobile">Mobile</label>
-                                <input type="tel" id="employerMobile" class="form-input" value="0420733557" pattern="04[0-9]{8}" placeholder="04XXXXXXXX">
-                            </div>
-                             <!-- Host Employer (READ-ONLY) -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="hostEmployer">Host Employer</label>
-                                <input type="text" id="hostEmployer" class="form-input" value="No (Checked)" readonly>
-                            </div>
-                            
-                            <!-- Email (Full Width) -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="employerEmail">Email</label>
-                                <input type="email" id="employerEmail" class="form-input" value="dentist@tahmoordental.com.au">
-                            </div>
-
-                            <!-- Workplace Training Address (Full Width) -->
-                            <div class="field-wrapper sm:col-span-2 lg:col-span-3">
-                                <label class="form-label" for="workplaceTrainingAddress">Workplace Training Address</label>
-                                <input type="text" id="workplaceTrainingAddress" class="form-input" value="Shop 2, 163-173 Remembrance driveway, TAHMOOR NSW 2573">
-                            </div>
-                            
-                            <!-- Direct Supervisor Name -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="directSupervisorName">Direct Supervisor Name</label>
-                                <input type="text" id="directSupervisorName" class="form-input" value="Hayley Sanderson">
-                            </div>
-                            <!-- Supervisor Licence No. -->
-                            <div class="field-wrapper">
-                                <label class="form-label" for="directSupervisorLicenceNo">Supervisor Licence No.</label>
-                                <input type="text" id="directSupervisorLicenceNo" class="form-input" value="">
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 1.6: Acceptance of Agreement -->
-            <div class="accordion-item">
-                <button type="button" class="accordion-header" data-section="section1-6">
-                    <span>1.6 Acceptance of Agreement</span>
-                    <span class="arrow text-2xl transform transition-transform duration-500">►</span>
-                </button>
-                <div class="accordion-content" data-section="section1-6">
-                    <div class="content-wrapper">
-                         <div class="alert-box mb-6">
-                            <p class="font-bold text-[#4B0082]">Note:</p>
-                            <p class="text-gray-700">This section requires signatures and dates from all parties, affirming acceptance of the training agreement terms.</p>
-                        </div>
-                        <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-inner text-sm text-gray-700 mb-8">
-                            <p class="font-bold mb-3 text-lg text-[#4B0082]">Agreement Terms:</p>
-                            <ul class="list-disc list-inside ml-4 space-y-2">
-                                <li>The RTO will deliver formal training for this apprentice/trainee.</li>
-                                <li>A full Training Plan will be developed by the RTO, in consultation with the employer and apprentice/trainee, within 12 weeks of approval of the Training Contract.</li>
-                                <li>Formal training and assessment will be undertaken in accordance with the obligations and responsibilities detailed in the Apprenticeship and Traineeship Act 2001 and relevant guidelines.</li>
-                            </ul>
+                        <div class="field-wrapper">
+                            <label for="middleName" class="form-label">Middle Name (Optional)</label>
+                            <input type="text" id="middleName" name="middleName" class="form-input" placeholder="e.g., Benjamin">
                         </div>
                         
-                        <div class="pt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            
-                            <!-- RTO Signatory -->
-                            <h3 class="sm:col-span-2 lg:col-span-3 text-xl font-black text-[#4B0082] border-b pb-2 mb-2">RTO Signatory</h3>
-                            <div class="field-wrapper">
-                                <label class="form-label" for="rtoPrintName">Print Name</label>
-                                <input type="text" id="rtoPrintName" class="form-input" value="">
+                        <!-- Date of Birth -->
+                        <div class="field-wrapper">
+                            <label for="dob" class="form-label">
+                                Date of Birth
+                            </label>
+                            <input type="date" id="dob" name="dob" class="form-input" required>
+                        </div>
+                        
+                        <!-- GENDER FIELD - REPLACED WITH SEGMENTED CONTROL -->
+                        <div class="field-wrapper">
+                            <label class="form-label" for="gender">Gender</label>
+                            <div class="segmented-control">
+                                <!-- Option 1: Male -->
+                                <input type="radio" id="genderMale" name="gender" value="Male" class="peer" required>
+                                <label for="genderMale" class="rounded-l-lg border-r border-gray-300">Male</label>
+                                
+                                <!-- Option 2: Female -->
+                                <input type="radio" id="genderFemale" name="gender" value="Female" class="peer">
+                                <label for="genderFemale" class="border-r border-gray-300">Female</label>
+                                
+                                <!-- Option 3: Unspecified -->
+                                <input type="radio" id="genderUnspecified" name="gender" value="Unspecified" class="peer">
+                                <label for="genderUnspecified" class="rounded-r-lg">Unspecified</label>
                             </div>
-                            <div class="field-wrapper">
-                                <label class="form-label" for="rtoPosition">Position</label>
-                                <input type="text" id="rtoPosition" class="form-input" value="">
-                            </div>
-                            <div class="field-wrapper">
-                                <label class="form-label" for="rtoDate">Signature Date</label>
-                                <input type="text" id="rtoDate" class="form-input" value="" pattern="\d{2}/\d{2}/\d{4}" placeholder="DD/MM/YYYY">
-                            </div>
-                            
-                            <!-- Employer Signatory -->
-                            <h3 class="sm:col-span-2 lg:col-span-3 text-xl font-black text-[#4B0082] border-b pb-2 pt-4 mb-2">Employer Signatory</h3>
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employerPosition">Position</label>
-                                <input type="text" id="employerPosition" class="form-input" value="Head Nurse">
-                            </div>
-                            <div class="field-wrapper">
-                                <label class="form-label" for="employerDate">Signature Date</label>
-                                <input type="text" id="employerDate" class="form-input" value="20/11/25" pattern="\d{2}/\d{2}/\d{4}" placeholder="DD/MM/YYYY">
-                            </div>
-                             <!-- Empty slot for alignment -->
-                            <div></div> 
+                        </div>
+                        
+                        <div class="field-wrapper">
+                            <label for="streetAddress" class="form-label">Street Address</label>
+                            <input type="text" id="streetAddress" name="streetAddress" class="form-input" placeholder="e.g., 123 Main St" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="suburb" class="form-label">Suburb</label>
+                            <input type="text" id="suburb" name="suburb" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="state" class="form-label">State</label>
+                            <input type="text" id="state" name="state" class="form-input" placeholder="e.g., NSW" required>
+                        </div>
+                        
+                        <div class="field-wrapper">
+                            <label for="postcode" class="form-label">Postcode</label>
+                            <input type="text" id="postcode" name="postcode" class="form-input" placeholder="e.g., 2000" pattern="\d{4}" title="Must be a 4-digit postcode" required>
+                        </div>
+                        
+                        <div class="field-wrapper">
+                            <label for="mobile" class="form-label">Mobile</label>
+                            <input type="tel" id="mobile" name="mobile" class="form-input" placeholder="e.g., 0412345678" pattern="04\d{8}" title="Must start with 04 and be 10 digits long" required>
+                        </div>
+                        
+                        <div class="field-wrapper">
+                            <label for="telephone" class="form-label">Phone</label>
+                            <input type="tel" id="telephone" name="telephone" class="form-input" placeholder="e.g., (02) 9876 5432">
+                        </div>
+                        
+                        <div class="field-wrapper">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" name="email" class="form-input" placeholder="e.g., alex.johnson@example.com" required>
+                        </div>
 
-                            <!-- Apprentice Signatory -->
-                            <h3 class="sm:col-span-2 lg:col-span-3 text-xl font-black text-[#4B0082] border-b pb-2 pt-4 mb-2">Apprentice/Trainee Signatory</h3>
-                            <div class="field-wrapper">
-                                <label class="form-label" for="apprenticePrintName">Print Name</label>
-                                <input type="text" id="apprenticePrintName" class="form-input" value="Hayley Sanderson">
+                        <!-- Support Indicator - CONVERTED TO STANDARD INPUT FOR NOW, if this was dropdown it would also use a segmented control -->
+                        <div class="field-wrapper">
+                            <label for="supportIndicator" class="form-label">Support Indicator</label>
+                            <div class="segmented-control">
+                                <input type="radio" id="supportYes" name="supportIndicator" value="Yes" class="peer" required>
+                                <label for="supportYes" class="rounded-l-lg border-r border-gray-300">Yes</label>
+                                <input type="radio" id="supportNo" name="supportIndicator" value="No" class="peer">
+                                <label for="supportNo" class="rounded-r-lg">No</label>
                             </div>
-                            <div class="field-wrapper">
-                                <label class="form-label" for="apprenticeDate">Signature Date</label>
-                                <input type="text" id="apprenticeDate" class="form-input" value="20/11/25" pattern="\d{2}/\d{2}/\d{4}" placeholder="DD/MM/YYYY">
+                        </div>
+                        
+                        <!-- Aboriginal or Torres Strait Islander origin? - CONVERTED TO SEGMENTED CONTROL -->
+                        <div class="field-wrapper">
+                            <label for="atsi" class="form-label">Aboriginal or Torres Strait Islander origin?</label>
+                            <div class="segmented-control">
+                                <input type="radio" id="atsiYes" name="atsi" value="Yes" class="peer" required>
+                                <label for="atsiYes" class="rounded-l-lg border-r border-gray-300">Yes</label>
+                                <input type="radio" id="atsiNo" name="atsi" value="No" class="peer">
+                                <label for="atsiNo" class="rounded-r-lg">No</label>
                             </div>
-                            <!-- Empty slot for alignment -->
-                            <div></div> 
-
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Save Button -->
-            <div class="flex justify-end p-4">
-                <button type="submit" class="btn-primary">Save Updated Plan</button>
+            <!-- ACCORDION SECTION 1.2: TRAINING DETAILS -->
+            <div class="accordion-item border-b border-gray-200">
+                <button type="button" class="accordion-header" aria-expanded="false" data-target="content-1-2">
+                    <!-- Title first, then arrow at the end -->
+                    <span>1.2 Training Details</span>
+                    <svg class="w-6 h-6 icon-rotate" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="content-1-2" class="accordion-content">
+                    <div class="inner-content grid grid-cols-1 gap-4">
+                        <div class="field-wrapper">
+                            <label for="contractType" class="form-label">Contract Type</label>
+                            <input type="text" id="contractType" name="contractType" class="form-input" readonly placeholder="Read-only: To be filled by RTO/Training Body">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employmentType" class="form-label">Employment Type</label>
+                            <!-- Note: If this were a fixed list, it would also be a segmented control now -->
+                            <input type="text" id="employmentType" name="employmentType" class="form-input" placeholder="e.g., Full-time">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="hoursPerWeek" class="form-label">Hours per week</label>
+                            <input type="number" id="hoursPerWeek" name="hoursPerWeek" class="form-input" placeholder="e.g., 38" min="1" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="tcStartDate" class="form-label">TC Start Date (DD/MM/YYYY)</label>
+                            <input type="date" id="tcStartDate" name="tcStartDate" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="tcEndDate" class="form-label">TC End Date (DD/MM/YYYY)</label>
+                            <input type="date" id="tcEndDate" name="tcEndDate" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="vtoID" class="form-label">VTO ID</label>
+                            <input type="text" id="vtoID" name="vtoID" class="form-input" readonly placeholder="Read-only">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="vocationTitle" class="form-label">Vocation Title</label>
+                            <input type="text" id="vocationTitle" name="vocationTitle" class="form-input" placeholder="e.g., Certificate III in Carpentry">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="qualificationTitle" class="form-label">Qualification Title</label>
+                            <input type="text" id="qualificationTitle" name="qualificationTitle" class="form-input" placeholder="e.g., Trade Certificate">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="nationalCode" class="form-label">National Code</label>
+                            <input type="text" id="nationalCode" name="nationalCode" class="form-input" placeholder="e.g., CPC30220">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="qualificationLevel" class="form-label">Qualification Level</label>
+                            <input type="text" id="qualificationLevel" name="qualificationLevel" class="form-input" placeholder="e.g., III">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="disability" class="form-label">Disability</label>
+                            <input type="text" id="disability" name="disability" class="form-input" readonly placeholder="Read-only: Declared Disability Status">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="modeOfDelivery" class="form-label">Mode of Delivery</label>
+                            <input type="text" id="modeOfDelivery" name="modeOfDelivery" class="form-input" readonly placeholder="Read-only: e.g., On-the-job, Off-the-job">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="fundingSource" class="form-label">Funding Source</label>
+                            <input type="text" id="fundingSource" name="fundingSource" class="form-input" readonly placeholder="Read-only: e.g., State Funding">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoTrainingAddress" class="form-label">RTO Training Address (if applicable)</label>
+                            <textarea id="rtoTrainingAddress" name="rtoTrainingAddress" class="form-textarea" placeholder="Enter the RTO's specific training address"></textarea>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-        </form>
+            <!-- ACCORDION SECTION 1.4: RTO DETAILS -->
+            <div class="accordion-item border-b border-gray-200">
+                <button type="button" class="accordion-header" aria-expanded="false" data-target="content-1-4">
+                    <span>1.4 Registered Training Organisation (RTO) Details</span>
+                    <svg class="w-6 h-6 icon-rotate" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="content-1-4" class="accordion-content">
+                    <div class="inner-content grid grid-cols-1 gap-4">
+                        <div class="field-wrapper">
+                            <label for="rtoLegalName" class="form-label">Legal Name</label>
+                            <input type="text" id="rtoLegalName" name="rtoLegalName" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoNationalCode" class="form-label">RTO National Code</label>
+                            <input type="text" id="rtoNationalCode" name="rtoNationalCode" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoTradingName" class="form-label">Trading Name</label>
+                            <input type="text" id="rtoTradingName" name="rtoTradingName" class="form-input">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoABN" class="form-label">ABN</label>
+                            <input type="text" id="rtoABN" name="rtoABN" class="form-input">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoStartDate" class="form-label">RTO Start Date (DD/MM/YYYY)</label>
+                            <input type="date" id="rtoStartDate" name="rtoStartDate" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="estimatedRTOEndDate" class="form-label">Estimated RTO End Date (DD/MM/YYYY)</label>
+                            <input type="date" id="estimatedRTOEndDate" name="estimatedRTOEndDate" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoContactName" class="form-label">Contact Name</label>
+                            <input type="text" id="rtoContactName" name="rtoContactName" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoTelephone" class="form-label">Telephone</label>
+                            <input type="tel" id="rtoTelephone" name="rtoTelephone" class="form-input">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoMobile" class="form-label">Mobile</label>
+                            <input type="tel" id="rtoMobile" name="rtoMobile" class="form-input">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoEmail" class="form-label">Email</label>
+                            <input type="email" id="rtoEmail" name="rtoEmail" class="form-input" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- ACCORDION SECTION 1.5: EMPLOYER DETAILS -->
+            <div class="accordion-item border-b border-gray-200">
+                <button type="button" class="accordion-header" aria-expanded="false" data-target="content-1-5">
+                    <span>1.5 Employer Details</span>
+                    <svg class="w-6 h-6 icon-rotate" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="content-1-5" class="accordion-content">
+                    <div class="inner-content grid grid-cols-1 gap-4">
+                        <div class="field-wrapper">
+                            <label for="employerLegalName" class="form-label">Legal Name</label>
+                            <input type="text" id="employerLegalName" name="employerLegalName" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerTradingName" class="form-label">Trading Name</label>
+                            <input type="text" id="employerTradingName" name="employerTradingName" class="form-input">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerABN" class="form-label">ABN</label>
+                            <input type="text" id="employerABN" name="employerABN" class="form-input">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerLicenceNo" class="form-label">Licence No.</label>
+                            <input type="text" id="employerLicenceNo" name="employerLicenceNo" class="form-input">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerStreetAddress" class="form-label">Street Address</label>
+                            <input type="text" id="employerStreetAddress" name="employerStreetAddress" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerSuburb" class="form-label">Suburb</label>
+                            <input type="text" id="employerSuburb" name="employerSuburb" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerState" class="form-label">State</label>
+                            <input type="text" id="employerState" name="employerState" class="form-input" placeholder="e.g., NSW" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerPostcode" class="form-label">Postcode (4-digit)</label>
+                            <input type="text" id="employerPostcode" name="employerPostcode" class="form-input" pattern="\d{4}" title="Must be a 4-digit postcode" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerContactName" class="form-label">Contact Name</label>
+                            <input type="text" id="employerContactName" name="employerContactName" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerMobile" class="form-label">Mobile (04XXXXXXXX)</label>
+                            <input type="tel" id="employerMobile" name="employerMobile" class="form-input" pattern="04\d{8}" title="Must start with 04 and be 10 digits long (04XXXXXXXX)">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="hostEmployer" class="form-label">Host Employer</label>
+                            <input type="text" id="hostEmployer" name="hostEmployer" class="form-input" readonly placeholder="Read-only: Yes/No">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerEmail" class="form-label">Email</label>
+                            <input type="email" id="employerEmail" name="employerEmail" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="workplaceTrainingAddress" class="form-label">Workplace Training Address</label>
+                            <textarea id="workplaceTrainingAddress" name="workplaceTrainingAddress" class="form-textarea"></textarea>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="directSupervisorName" class="form-label">Direct Supervisor Name</label>
+                            <input type="text" id="directSupervisorName" name="directSupervisorName" class="form-input" required>
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="directSupervisorLicenceNo" class="form-label">Supervisor Licence No.</label>
+                            <input type="text" id="directSupervisorLicenceNo" name="directSupervisorLicenceNo" class="form-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACCORDION SECTION 1.6: ACCEPTANCE OF AGREEMENT (SIGN-OFFS) -->
+            <div class="accordion-item">
+                <button type="button" class="accordion-header" aria-expanded="false" data-target="content-1-6">
+                    <span>1.6 Acceptance of Agreement (Sign-off)</span>
+                    <svg class="w-6 h-6 icon-rotate" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="content-1-6" class="accordion-content">
+                    <div class="inner-content grid grid-cols-1 gap-4">
+                        <h3 class="text-lg font-bold text-[#4B0082] mt-2 mb-2 border-b pb-2">RTO Signatory</h3>
+                        <div class="field-wrapper">
+                            <label for="rtoPrintName" class="form-label">Print Name</label>
+                            <input type="text" id="rtoPrintName" name="rtoPrintName" class="form-input" placeholder="RTO Signatory Print Name">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoPosition" class="form-label">Position</label>
+                            <input type="text" id="rtoPosition" name="rtoPosition" class="form-input" placeholder="RTO Signatory Position">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="rtoDate" class="form-label">Signature Date (DD/MM/YYYY)</label>
+                            <input type="date" id="rtoDate" name="rtoDate" class="form-input">
+                        </div>
+
+                        <h3 class="text-lg font-bold text-[#4B0082] mt-4 mb-2 border-b pb-2">Employer Signatory</h3>
+                        <div class="field-wrapper">
+                            <label for="employerPosition" class="form-label">Position</label>
+                            <input type="text" id="employerPosition" name="employerPosition" class="form-input" placeholder="Employer Signatory Position">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="employerDate" class="form-label">Signature Date (DD/MM/YYYY)</label>
+                            <input type="date" id="employerDate" name="employerDate" class="form-input">
+                        </div>
+
+                        <h3 class="text-lg font-bold text-[#4B0082] mt-4 mb-2 border-b pb-2">Apprentice/Trainee Signatory</h3>
+                        <div class="field-wrapper">
+                            <label for="apprenticePrintName" class="form-label">Print Name</label>
+                            <input type="text" id="apprenticePrintName" name="apprenticePrintName" class="form-input" placeholder="Apprentice/Trainee Signatory Print Name">
+                        </div>
+                        <div class="field-wrapper">
+                            <label for="apprenticeDate" class="form-label">Signature Date (DD/MM/YYYY)</label>
+                            <input type="date" id="apprenticeDate" name="apprenticeDate" class="form-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
+        const API_KEY = ""; // Canvas will inject the API key
+
+        // Initialize Firebase and Auth State
+        let db = null;
+        let auth = null;
+        let userId = null;
+        let isAuthReady = false;
+
+        if (firebaseConfig) {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            setLogLevel('Debug'); // Enable Firebase debug logging
+
+            // Asynchronously sign in
+            const authInit = async () => {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Firebase authentication failed:", error);
+                }
+            };
+            authInit();
+
+            // Listen for auth state changes
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    console.log("Authenticated user ID:", userId);
+                } else {
+                    // This handles anonymous sign-in failure or sign-out
+                    userId = crypto.randomUUID();
+                    console.log("No authenticated user. Using generated ID:", userId);
+                }
+                isAuthReady = true;
+            });
+        }
+
+
+        // --- Utility Functions for API and File Handling ---
+
+        /**
+         * Converts a File object (or Blob) into a Base64 string for API payload.
+         * @param {File} file The file object from the input.
+         * @returns {Promise<string>} A promise that resolves with the Base64 data string.
+         */
+        const fileToBase64 = (file) => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]); // Only data part
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        };
+
+        /**
+         * Handles API call with exponential backoff for resilience.
+         * @param {string} apiUrl - The API endpoint URL.
+         * @param {object} payload - The request body payload.
+         * @param {number} maxRetries - Maximum number of retries.
+         * @param {number} delay - Initial delay in ms.
+         * @returns {Promise<object>} JSON response from the API.
+         */
+        async function fetchWithExponentialBackoff(apiUrl, payload, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        return await response.json();
+                    } else if (response.status === 429 || response.status >= 500) {
+                        // Rate limit or server error: retry
+                        console.warn(`API call failed with status ${response.status}. Retrying in ${delay}ms...`);
+                    } else {
+                        // Other client errors: fail immediately
+                        const errorBody = await response.json().catch(() => ({}));
+                        throw new Error(`API failed: ${response.statusText} (${response.status}). Details: ${JSON.stringify(errorBody)}`);
+                    }
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        console.error('Max retries reached. API call failed.', error);
+                        throw error;
+                    }
+                }
+                // Wait before retrying
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2; // Exponential backoff
+            }
+        }
+
+
+        // --- Core Application Logic ---
+
+        // Map of logical field names to their HTML Input IDs
+        const formFields = {
+            // 1.1 Apprentice/Trainee Personal Details
+            givenName: 'givenName',
+            familyName: 'familyName',
+            middleName: 'middleName',
+            dob: 'dob',
+            gender: 'gender', // Now radio button group
+            atsi: 'atsi',     // Now radio button group
+            streetAddress: 'streetAddress',
+            suburb: 'suburb',
+            state: 'state',
+            postcode: 'postcode',
+            mobile: 'mobile',
+            telephone: 'telephone',
+            supportIndicator: 'supportIndicator', // Now radio button group
+            email: 'email',
+            
+            // 1.2 Training Details
+            contractType: 'contractType',
+            employmentType: 'employmentType',
+            hoursPerWeek: 'hoursPerWeek',
+            tcStartDate: 'tcStartDate',
+            tcEndDate: 'tcEndDate',
+            vtoID: 'vtoID',
+            vocationTitle: 'vocationTitle',
+            qualificationTitle: 'qualificationTitle',
+            nationalCode: 'nationalCode',
+            qualificationLevel: 'qualificationLevel',
+            disability: 'disability',
+            modeOfDelivery: 'modeOfDelivery',
+            fundingSource: 'fundingSource',
+            rtoTrainingAddress: 'rtoTrainingAddress',
+
+            // 1.4 Registered Training Organisation (RTO)
+            rtoLegalName: 'rtoLegalName',
+            rtoNationalCode: 'rtoNationalCode',
+            rtoTradingName: 'rtoTradingName',
+            rtoABN: 'rtoABN',
+            rtoStartDate: 'rtoStartDate',
+            estimatedRTOEndDate: 'estimatedRTOEndDate',
+            rtoContactName: 'rtoContactName',
+            rtoTelephone: 'rtoTelephone',
+            rtoMobile: 'rtoMobile',
+            rtoEmail: 'rtoEmail',
+
+            // 1.5 Employer Details
+            employerLegalName: 'employerLegalName',
+            employerTradingName: 'employerTradingName',
+            employerABN: 'employerABN',
+            employerLicenceNo: 'employerLicenceNo',
+            employerStreetAddress: 'employerStreetAddress',
+            employerSuburb: 'employerSuburb',
+            employerState: 'employerState',
+            employerPostcode: 'employerPostcode',
+            employerContactName: 'employerContactName',
+            employerMobile: 'employerMobile',
+            hostEmployer: 'hostEmployer',
+            employerEmail: 'employerEmail',
+            workplaceTrainingAddress: 'workplaceTrainingAddress',
+            directSupervisorName: 'directSupervisorName',
+            directSupervisorLicenceNo: 'directSupervisorLicenceNo',
+
+            // 1.6 Acceptance of Agreement
+            rtoPrintName: 'rtoPrintName',
+            rtoPosition: 'rtoPosition',
+            rtoDate: 'rtoDate',
+            employerPosition: 'employerPosition',
+            employerDate: 'employerDate',
+            apprenticePrintName: 'apprenticePrintName',
+            apprenticeDate: 'apprenticeDate'
+        };
+
+        const uploadMessageContainer = document.getElementById('upload-message-container');
+        const fileUploadArea = document.getElementById('file-upload-area');
+
+        /**
+         * Clears and displays a message in the upload message container.
+         * @param {string} text - The message text.
+         * @param {string} type - 'success' or 'error'.
+         */
+        function displayMessage(text, type) {
+            uploadMessageContainer.innerHTML = '';
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-box ${type}`;
+            messageDiv.textContent = text;
+            uploadMessageContainer.appendChild(messageDiv);
+        }
+
+        /**
+         * Displays the loading state with a spinner.
+         */
+        function displayLoading() {
+            uploadMessageContainer.innerHTML = `
+                <div class="message-box bg-blue-100 text-blue-800 border border-blue-300 flex items-center">
+                    <span class="spinner mr-3"></span>
+                    Analyzing document content for TPP structure and data...
+                </div>
+            `;
+        }
+
+        /**
+         * Populates the form fields based on the extracted data.
+         * @param {object} data - The extracted data object.
+         */
+        function populateForm(data) {
+            for (const key in formFields) {
+                const element = document.getElementById(formFields[key]);
+                
+                // Handle radio buttons (segmented control)
+                if (['gender', 'atsi', 'supportIndicator'].includes(key)) {
+                    // Find the radio button corresponding to the extracted value and check it
+                    const radioGroupName = key;
+                    const radioValue = data[key];
+                    if (radioValue) {
+                        const targetRadio = document.querySelector(`input[name="${radioGroupName}"][value="${radioValue}"]`);
+                        if (targetRadio) {
+                            targetRadio.checked = true;
+                        }
+                    }
+                } 
+                // Handle standard inputs/textareas
+                else if (element && data[key]) {
+                    element.value = data[key];
+                }
+            }
+        }
+
+        /**
+         * Main handler for the file upload event.
+         * Reads file, calls API, validates, and populates the form.
+         * @param {Event} event - The file input change event.
+         */
+        window.handleFileUpload = async function(event) {
+            const fileInput = event.target;
+            const file = fileInput.files[0];
+            
+            // --- Reset state and preliminary checks ---
+            document.getElementById('upload-confirmation-text')?.remove();
+            fileInput.style.display = 'block';
+
+            if (!file) {
+                uploadMessageContainer.innerHTML = '';
+                return;
+            }
+
+            const acceptedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+            if (!acceptedMimeTypes.includes(file.type)) {
+                displayMessage("Unsupported file type. Please upload a PDF or an image.", 'error');
+                fileInput.value = '';
+                return;
+            }
+
+            displayLoading();
+
+            try {
+                const base64Data = await fileToBase64(file);
+                const mimeType = file.type;
+
+                const userPrompt = `Analyze the provided Training Plan Proposal document. 
+                1. Verify that the document heading or title is clearly 'Training Plan Proposal' or 'Training Contract'.
+                2. If validation is successful, extract all the following detailed fields exactly as requested, focusing on accuracy and format: Given Name, Family Name, Middle Name, Date of Birth (DD/MM/YYYY), Gender, Aboriginal or Torres Strait Islander origin (Yes/No), Street Address, Suburb, State, Postcode (4-digit), Mobile, Telephone, Support Indicator (Yes/No), Email, Contract Type, Employment Type, Hours per Week (number), TC Start Date (DD/MM/YYYY), TC End Date (DD/MM/YYYY), VTO ID, Vocation Title, Qualification Title, National Code, Qualification Level, Disability, Mode of Delivery, Funding Source, RTO Training Address, RTO Legal Name, RTO National Code, RTO Trading Name, RTO ABN, RTO Start Date (DD/MM/YYYY), Estimated RTO End Date (DD/MM/YYYY), RTO Contact Name, RTO Telephone, RTO Mobile, RTO Email, Employer Legal Name, Employer Trading Name, Employer ABN, Employer Licence No., Employer Street Address, Employer Suburb, Employer State, Employer Postcode (4-digit), Employer Contact Name, Employer Mobile, Host Employer (Yes/No), Employer Email, Workplace Training Address, Direct Supervisor Name, Supervisor Licence No., RTO Signatory Print Name, RTO Signatory Position, RTO Signatory Signature Date (DD/MM/YYYY), Employer Signatory Position, Employer Signatory Signature Date (DD/MM/YYYY), Apprentice/Trainee Signatory Print Name, and Apprentice/Trainee Signatory Signature Date (DD/MM/YYYY).
+                3. Structure your response as a single JSON object conforming to the provided schema. Dates should be in YYYY-MM-DD format for input fields. For Gender, Aboriginal or Torres Strait Islander origin, and Support Indicator, return only the extracted text value (e.g., 'Male', 'Yes', 'No').`;
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+                
+                // Define the structured JSON schema for the response (all strings for flexibility)
+                const dataProperties = {};
+                Object.keys(formFields).forEach(key => {
+                    dataProperties[key] = { "type": "STRING" };
+                });
+
+                const responseSchema = {
+                    type: "OBJECT",
+                    properties: {
+                        "isValidTPP": {
+                            "type": "BOOLEAN",
+                            "description": "True if the document heading matches 'Training Plan Proposal' or 'Training Contract', false otherwise."
+                        },
+                        "extractedData": {
+                            "type": "OBJECT",
+                            "properties": dataProperties
+                        },
+                        "message": { "type": "STRING", "description": "A short status message." }
+                    },
+                    required: ["isValidTPP", "extractedData", "message"]
+                };
+
+                const payload = {
+                    contents: [{
+                        role: "user",
+                        parts: [
+                            { text: userPrompt },
+                            {
+                                inlineData: {
+                                    mimeType: mimeType,
+                                    data: base64Data
+                                }
+                            }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: responseSchema
+                    }
+                };
+
+                const result = await fetchWithExponentialBackoff(apiUrl, payload);
+
+                const jsonString = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!jsonString) {
+                    throw new Error("API response was empty or malformed.");
+                }
+
+                const responseData = JSON.parse(jsonString);
+
+                if (responseData.isValidTPP && responseData.extractedData) {
+                    populateForm(responseData.extractedData);
+                    
+                    // --- SUCCESS ACTIONS: Hide input and show confirmation ---
+                    fileInput.style.display = 'none';
+                    
+                    const confirmationText = document.createElement('p');
+                    confirmationText.id = 'upload-confirmation-text';
+                    confirmationText.className = 'text-sm text-gray-700 font-semibold italic p-2 border border-green-300 rounded-lg bg-green-50';
+                    confirmationText.textContent = `Document '${file.name}' processed successfully.`;
+                    
+                    fileUploadArea.appendChild(confirmationText);
+                    
+                    displayMessage("Document successfully validated and form fields auto-populated!", 'success');
+
+                } else {
+                    // --- FAILURE ACTIONS: Ensure input is visible and show error ---
+                    displayMessage("Invalid TPP Document. Please provide a valid Training Plan Proposal or Training Contract.", 'error');
+                    fileInput.style.display = 'block';
+                    fileInput.value = '';
+                }
+
+            } catch (e) {
+                // --- ERROR ACTIONS: Ensure input is visible and show generic error ---
+                console.error("Upload and API processing failed:", e);
+                displayMessage("An unexpected error occurred during document processing. Please try again.", 'error');
+                fileInput.style.display = 'block';
+                fileInput.value = '';
+            }
+        };
+
+
+        // --- Accordion Logic ---
+
         document.addEventListener('DOMContentLoaded', function() {
             const accordionHeaders = document.querySelectorAll('.accordion-header');
 
-            const toggleSection = (header, content, arrow, forceClose = false) => {
-                const isActive = content.classList.contains('active');
-                
-                if (isActive || forceClose) {
-                    // Close the section
-                    content.style.maxHeight = '0';
-                    content.classList.remove('active');
-                    header.classList.remove('rounded-b-none');
-                    arrow.style.transform = 'rotate(0deg)';
-                    arrow.textContent = '►';
-                } else {
-                    // Open the section
-                    content.classList.add('active');
-                    // Ensure max-height is calculated based on the inner content wrapper's scroll height
-                    const innerContent = content.querySelector('.content-wrapper');
-                    content.style.maxHeight = innerContent.scrollHeight + 30 + 'px'; // +30px buffer for safety
-                    header.classList.add('rounded-b-none');
-                    arrow.style.transform = 'rotate(180deg)';
-                    arrow.textContent = '▼';
-                }
-            };
-
             accordionHeaders.forEach(header => {
-                const sectionId = header.getAttribute('data-section');
-                const content = document.querySelector(`.accordion-content[data-section="${sectionId}"]`);
-                const arrow = header.querySelector('.arrow');
+                header.addEventListener('click', function() {
+                    const targetId = this.dataset.target;
+                    const content = document.getElementById(targetId);
+                    const innerContent = content.querySelector('.inner-content');
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
 
-                // Initial setup: ensure all are closed except 1.1, and set max-height correctly for 1.1
-                const isInitialActive = sectionId === 'section1-1';
-                if (isInitialActive) {
-                    content.classList.add('active');
-                    const innerContent = content.querySelector('.content-wrapper');
-                    // Set initial max-height for the active section
-                    content.style.maxHeight = innerContent.scrollHeight + 30 + 'px';
-                    header.classList.add('rounded-b-none');
-                    arrow.textContent = '▼';
-                } else {
-                    // Ensure all other sections are closed by default
-                    content.style.maxHeight = '0';
-                    header.classList.remove('rounded-b-none');
-                    arrow.style.transform = 'rotate(0deg)';
-                    arrow.textContent = '►';
-                }
-                
-                header.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Close all other open sections
-                    document.querySelectorAll('.accordion-item').forEach(item => {
-                        const otherHeader = item.querySelector('.accordion-header');
-                        const otherContent = item.querySelector('.accordion-content');
-                        const otherArrow = item.querySelector('.arrow');
-                        
-                        if (otherContent.classList.contains('active') && otherHeader !== header) {
-                            toggleSection(otherHeader, otherContent, otherArrow, true);
-                        }
-                    });
+                    if (isExpanded) {
+                        // Collapse
+                        this.setAttribute('aria-expanded', 'false');
+                        content.classList.remove('active');
+                        content.style.maxHeight = 0;
+                    } else {
+                        // Expand
+                        // Collapse all others first for better UX
+                        document.querySelectorAll('.accordion-item .accordion-header[aria-expanded="true"]').forEach(openHeader => {
+                            if (openHeader !== this) {
+                                openHeader.setAttribute('aria-expanded', 'false');
+                                const openContent = document.getElementById(openHeader.dataset.target);
+                                openContent.classList.remove('active');
+                                openContent.style.maxHeight = 0;
+                            }
+                        });
 
-                    // Toggle the clicked section
-                    toggleSection(header, content, arrow);
-                });
 
-                // Recalculate max-height on window resize (important for responsive grid layout)
-                window.addEventListener('resize', () => {
-                    if (content.classList.contains('active')) {
-                        const innerContent = content.querySelector('.content-wrapper');
-                        // Briefly set max height to none to recalculate the scrollHeight accurately, then apply
-                        content.style.maxHeight = 'none';
+                        this.setAttribute('aria-expanded', 'true');
+                        content.classList.add('active');
+                        // Calculate scrollHeight for smooth transition
                         content.style.maxHeight = innerContent.scrollHeight + 30 + 'px';
                     }
                 });
             });
 
-            // Simple form submission handler (for demonstration)
-            document.getElementById('training-plan-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Perform basic form validation
-                const form = e.target;
-                if (!form.checkValidity()) {
-                    // If validation fails (e.g., postcode or mobile format), display browser message
-                    form.reportValidity();
-                    return; 
+            // Ensure the first accordion is open and calculated on load
+            const initialHeader = document.querySelector('.accordion-header[data-target="content-1-1"]');
+            if (initialHeader && initialHeader.getAttribute('aria-expanded') === 'true') {
+                const content = document.getElementById('content-1-1');
+                const innerContent = content.querySelector('.inner-content');
+                if (content && innerContent) {
+                    content.classList.add('active');
+                    content.style.maxHeight = innerContent.scrollHeight + 30 + 'px';
                 }
-
-                const saveButton = e.submitter;
-                const originalText = saveButton.textContent;
-                
-                // Show a fake success state
-                saveButton.textContent = 'Plan Saved Successfully!';
-                saveButton.classList.remove('btn-primary');
-                saveButton.classList.add('btn-save');
-
-                setTimeout(() => {
-                    saveButton.textContent = originalText;
-                    saveButton.classList.remove('btn-save');
-                    saveButton.classList.add('btn-primary');
-                }, 3000);
-            });
+            }
         });
     </script>
 </body>
