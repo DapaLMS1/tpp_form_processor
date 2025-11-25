@@ -186,7 +186,7 @@
       </div>
     </div>
     
-    <!-- Accordion Section 1.3: ACAP Details (Apprenticeship Connect Australia Provider) - UPDATED -->
+    <!-- Accordion Section 1.3: ACAP Details (Apprenticeship Connect Australia Provider) -->
     <button class="w-full flex justify-between items-center p-4 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 transition duration-150 accordion-header" data-target="p2_3">
       <span class="font-bold text-lg">1.3 Apprenticeship Connect Australia Provider (ACAP)</span>
       <span class="transform transition duration-300">▼</span>
@@ -203,10 +203,10 @@
         <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="acapEmail" type="email" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
 
         <!-- Telephone -->
-        <div><label class="text-xs font-semibold block mb-1">Tel (10 digits)</label><input data-field="acapTel" type="text" pattern="\d{10}" maxlength="10" placeholder="e.g., 1300483786" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Phone</label><input data-field="acapTel" type="text" pattern="\d{10}" maxlength="10" placeholder="e.g., 1300483786" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
         
         <!-- Mobile -->
-        <div><label class="text-xs font-semibold block mb-1">Mob (10 digits)</label><input data-field="acapMob" type="text" pattern="04\d{8}" maxlength="10" placeholder="e.g., 0448028114" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="acapMob" type="text" pattern="04\d{8}" maxlength="10" placeholder="e.g., 0448028114" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
 
         <!-- Date -->
         <div class="md:col-span-2"><label class="text-xs font-semibold block mb-1">Date</label><input data-field="acapDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
@@ -214,25 +214,36 @@
       </div>
     </div>
 
-    <!-- Accordion Section 1.4: RTO Details -->
+    <!-- Accordion Section 1.4: Registered Training Organisation (RTO) -->
     <button class="w-full flex justify-between items-center p-4 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 transition duration-150 accordion-header" data-target="p3">
-      <span class="font-bold text-lg">1.4 RTO Details</span>
+      <span class="font-bold text-lg">1.4 Registered Training Organisation (RTO)</span>
       <span class="transform transition duration-300">▼</span>
     </button>
     <div id="p3" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0; padding-top: 0; padding-bottom: 0;">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div><label class="text-xs font-semibold block mb-1">Legal Name</label><input data-field="rtoLegalName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">National Code</label><input data-field="rtoNationalCode" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        
+        <!-- Trading Name -->
         <div><label class="text-xs font-semibold block mb-1">Trading Name</label><input data-field="rtoTradingName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+
+        <div><label class="text-xs font-semibold block mb-1">National Code</label><input data-field="rtoNationalCode" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
         <div><label class="text-xs font-semibold block mb-1">ABN</label><input data-field="rtoABN" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Start Date</label><input data-field="rtoStartDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Estimated End Date</label><input data-field="estimatedRTOEndDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        
         <div><label class="text-xs font-semibold block mb-1">Contact Name</label><input data-field="rtoContactName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
         <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="rtoEmail" type="email" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        
+        <!-- Mobile Field -->
+        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="rtoMobile" type="text" pattern="04\d{8}" maxlength="10" placeholder="e.g., 0412345678" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        
+        <!-- Placeholder for symmetry -->
+        <div></div> 
+
+        <div><label class="text-xs font-semibold block mb-1">Start Date</label><input data-field="rtoStartDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Estimated End Date</label><input data-field="estimatedRTOEndDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
       </div>
     </div>
 
-    <!-- Accordion Section 1.5: Employer Details -->
+    <!-- Accordion Section 1.5: Employer Details - UPDATED -->
     <button class="w-full flex justify-between items-center p-4 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 transition duration-150 accordion-header" data-target="p4">
       <span class="font-bold text-lg">1.5 Employer Details</span>
       <span class="transform transition duration-300">▼</span>
@@ -241,14 +252,29 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div><label class="text-xs font-semibold block mb-1">Legal Name</label><input data-field="employerLegalName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
         <div><label class="text-xs font-semibold block mb-1">Trading Name</label><input data-field="employerTradingName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        
+        <!-- Host Employer (Yes/No) field -->
+        <div>
+          <label class="text-xs font-semibold block mb-1">Host Employer</label>
+          <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
+            <input id="hostY" name="hostEmployer" type="radio" value="Yes" /><label for="hostY" class="px-4 py-1.5 rounded-l-full cursor-pointer hover:bg-primary/10 transition duration-100">Yes</label>
+            <input id="hostN" name="hostEmployer" type="radio" value="No" /><label for="hostN" class="px-4 py-1.5 rounded-r-full cursor-pointer hover:bg-primary/10 transition duration-100">No</label>
+          </div>
+        </div>
+
         <div><label class="text-xs font-semibold block mb-1">ABN</label><input data-field="employerABN" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
         <div><label class="text-xs font-semibold block mb-1">Licence No.</label><input data-field="employerLicenceNo" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
         <div><label class="text-xs font-semibold block mb-1">Street Address</label><input data-field="employerStreetAddress" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
         <div><label class="text-xs font-semibold block mb-1">Suburb</label><input data-field="employerSuburb" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
         <div><label class="text-xs font-semibold block mb-1">State</label><input data-field="employerState" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
         <div><label class="text-xs font-semibold block mb-1">Postcode</label><input data-field="employerPostcode" pattern="\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        
         <div><label class="text-xs font-semibold block mb-1">Contact Name</label><input data-field="employerContactName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
         <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="employerEmail" type="email" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        
+        <!-- NEW Mobile Field -->
+        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="employerMobile" type="text" pattern="04\d{8}" maxlength="10" placeholder="e.g., 0498765432" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        
       </div>
     </div>
 
@@ -292,7 +318,7 @@
         if (value === null || value === undefined) return;
 
         // Special handling for radio groups
-        if (key === 'gender' || key === 'atsi' || key === 'supportIndicator' || key === 'contractType' || key === 'employmentType' || key === 'fundingSource' || key === 'disability' || key === 'daaws') {
+        if (key === 'gender' || key === 'atsi' || key === 'supportIndicator' || key === 'contractType' || key === 'employmentType' || key === 'fundingSource' || key === 'disability' || key === 'daaws' || key === 'hostEmployer') {
           const radio = document.querySelector(`input[name="${key}"][value="${value}"]`);
           if (radio) {
             radio.checked = true;
@@ -416,7 +442,7 @@
           stateRTO: "NSW", 
           postcodeRTO: "2009", 
 
-          // ACAP Details (Section 1.3) - UPDATED MOCK DATA
+          // ACAP Details (Section 1.3)
           acapProviderName: "Mas National",
           acapContactName: "Raelene Matthew",
           acapEmail: "TPPnotifications@masnational.com.au",
@@ -429,14 +455,16 @@
           rtoNationalCode: "90123",
           rtoTradingName: "TSI Training",
           rtoABN: "12 345 678 901",
-          rtoStartDate: "01/03/2025",
-          estimatedRTOEndDate: "01/03/2027",
           rtoContactName: "Jane Doe",
           rtoEmail: "jane.doe@tsi.edu.au",
-
-          // Employer Details (Section 1.5)
+          rtoMobile: "0499887766", 
+          rtoStartDate: "01/03/2025",
+          estimatedRTOEndDate: "01/03/2027",
+          
+          // Employer Details (Section 1.5) - UPDATED
           employerLegalName: "Innovate Solutions Australia",
           employerTradingName: "Innovate Tech",
+          hostEmployer: "No", // NEW field
           employerABN: "98 765 432 109",
           employerLicenceNo: "LIC-7890",
           employerStreetAddress: "10 Innovation Drive",
@@ -445,6 +473,7 @@
           employerPostcode: "2000",
           employerContactName: "Mark Smith",
           employerEmail: "mark.smith@innovate.com.au",
+          employerMobile: "0498765432", // NEW field
 
           // Sign-off Details (Section 1.6)
           rtoPrintName: "Jane Doe",
