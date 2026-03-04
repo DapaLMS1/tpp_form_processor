@@ -1,32 +1,22 @@
-<!-- Prototype Canvas: Training Plan Proposal Editor (Refactored) -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TPP Editor Prototype</title>
-  <!-- Load Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Custom styles for accordion transition and segmented control */
     .accordion-content { transition: max-height .3s ease, padding .3s ease; overflow: hidden; }
     .segmented-control input[type=radio]{display:none;}
     .segmented-control input[type=radio]:checked + label{background:#4B0082;color:white;font-weight:700;}
-    /* Spinner animation for loading state */
     .spinner{border:3px solid rgba(0,0,0,.08);border-top:3px solid #4B0082;border-radius:50%;width:20px;height:20px;animation:spin 1s linear infinite;}@keyframes spin{to{transform:rotate(360deg);}}
   </style>
   <script>
-    // Configure Tailwind to use a custom indigo color for branding
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            // Using a deep purple/indigo tone
-            'primary': '#4B0082',
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
+          colors: { 'primary': '#4B0082' },
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
         },
       },
     }
@@ -38,483 +28,401 @@
     Training Plan Proposal (TPP) Editor
   </h1>
 
-  <!-- Upload Area - Simulation of Document Parsing -->
+  <!-- Upload Area -->
   <section class="max-w-xl mx-auto mb-6 bg-white p-5 rounded-xl shadow-lg border border-gray-200">
-    <label class="block text-sm font-bold text-gray-700 mb-2">Upload TPP Document (PDF, Image) then complete any missing fields</label>
-    <div class="flex items-center space-x-4">
-      <input id="fileInput" type="file" accept="application/pdf,image/*" class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"/>
+    <label class="block text-sm font-bold text-gray-700 mb-2">Upload TPP Document (PDF, Image) for AI Extraction</label>
+    <div class="flex flex-col space-y-4">
+      <div class="flex items-center space-x-4">
+        <input id="fileInput" type="file" accept="application/pdf,image/*" class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"/>
+      </div>
       <div id="uploadStatus" class="text-sm font-medium text-gray-600">Awaiting file upload...</div>
+      <div id="mappingReport" class="hidden p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-800"></div>
     </div>
   </section>
 
   <!-- Form Container -->
-  <section class="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl space-y-4 border border-primary/20">
+  <section id="mainForm" class="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl space-y-4 border border-primary/20">
 
-    <!-- Accordion Section 1: Personal Details -->
+    <!-- 1.1 Apprentice / Trainee Personal Details -->
     <button class="w-full flex justify-between items-center p-4 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 transition duration-150 accordion-header" data-target="p1">
       <span class="font-bold text-lg">1.1 Apprentice / Trainee Personal Details</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p1" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:1200px; padding-top: 1rem; padding-bottom: 1rem;">
+    <div id="p1" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div><label class="text-xs font-semibold block mb-1">Given Name</label><input data-field="givenName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Family Name</label><input data-field="familyName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Middle Name</label><input data-field="middleName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Date of Birth</label><input data-field="dob" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Training Plan</label>
+          <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
+            <input id="tpNew" name="trainingPlanType" type="radio" value="New"/><label for="tpNew" class="px-4 py-1.5 rounded-l-full cursor-pointer">New</label>
+            <input id="tpAmended" name="trainingPlanType" type="radio" value="Amended"/><label for="tpAmended" class="px-4 py-1.5 rounded-r-full cursor-pointer">Amended</label>
+          </div>
+        </div>
+        <div><label class="text-xs font-semibold block mb-1">Training Plan Date</label>
+          <input data-field="trainingPlanDate" type="text" placeholder="DD/MM/YYYY" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary"/>
+        </div>
+        <div class="hidden md:block"></div>
 
-        <div class="md:col-span-3">
+        <div><label class="text-xs font-semibold block mb-1">Given Name</label><input data-field="givenName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Family Name</label><input data-field="familyName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Middle Name</label><input data-field="middleName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        
+        <div><label class="text-xs font-semibold block mb-1">Date of Birth</label><input data-field="dob" type="text" placeholder="DD/MM/YYYY" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div>
           <label class="text-xs font-semibold block mb-1">Gender</label>
           <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
-            <input id="gM" name="gender" type="radio" value="Male"/><label for="gM" class="px-4 py-1.5 rounded-l-full cursor-pointer hover:bg-primary/10 transition duration-100">Male</label>
-            <input id="gF" name="gender" type="radio" value="Female"/><label for="gF" class="px-4 py-1.5 cursor-pointer hover:bg-primary/10 transition duration-100">Female</label>
-            <input id="gU" name="gender" type="radio" value="Unspecified"/><label for="gU" class="px-4 py-1.5 rounded-r-full cursor-pointer hover:bg-primary/10 transition duration-100">Unspecified</label>
+            <input id="gM" name="gender" type="radio" value="Male"/><label for="gM" class="px-4 py-1.5 rounded-l-full cursor-pointer">Male</label>
+            <input id="gF" name="gender" type="radio" value="Female"/><label for="gF" class="px-4 py-1.5 cursor-pointer">Female</label>
+            <input id="gU" name="gender" type="radio" value="Unspecified"/><label for="gU" class="px-4 py-1.5 rounded-r-full cursor-pointer">Unspecified</label>
           </div>
         </div>
+        <div class="hidden md:block"></div>
 
-        <div><label class="text-xs font-semibold block mb-1">Aboriginal or Torres Strait Islander origin?</label>
-          <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
-            <input id="atsiY" name="atsi" type="radio" value="Yes"/><label for="atsiY" class="px-4 py-1.5 rounded-l-full cursor-pointer hover:bg-primary/10 transition duration-100">Yes</label>
-            <input id="atsiN" name="atsi" type="radio" value="No"/><label for="atsiN" class="px-4 py-1.5 rounded-r-full cursor-pointer hover:bg-primary/10 transition duration-100">No</label>
-          </div>
-        </div>
+        <div><label class="text-xs font-semibold block mb-1">Street Address</label><input data-field="streetAddress" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Suburb</label><input data-field="suburb" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">State</label><input data-field="state" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
         
-        <div><label class="text-xs font-semibold block mb-1">Street Address</label><input data-field="streetAddress" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Suburb</label><input data-field="suburb" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">State</label><input data-field="state" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Postcode</label><input data-field="postcode" pattern="\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="mobile" pattern="04\d{8}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Telephone</label><input data-field="telephone" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Postcode</label><input data-field="postcode" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="mobile" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Telephone</label><input data-field="telephone" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        
         <div><label class="text-xs font-semibold block mb-1">Support Indicator</label>
           <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
-            <input id="supY" name="supportIndicator" type="radio" value="Yes"/><label for="supY" class="px-4 py-1.5 rounded-l-full cursor-pointer hover:bg-primary/10 transition duration-100">Yes</label>
-            <input id="supN" name="supportIndicator" type="radio" value="No"/><label for="supN" class="px-4 py-1.5 rounded-r-full cursor-pointer hover:bg-primary/10 transition duration-100">No</label>
+            <input id="supY" name="supportIndicator" type="radio" value="Yes"/><label for="supY" class="px-4 py-1.5 rounded-l-full cursor-pointer">Yes</label>
+            <input id="supN" name="supportIndicator" type="radio" value="No"/><label for="supN" class="px-4 py-1.5 rounded-r-full cursor-pointer">No</label>
           </div>
         </div>
-        <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="email" type="email" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="email" type="email" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Aboriginal or Torres Strait Islander?</label>
+          <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
+            <input id="atsiY" name="atsi" type="radio" value="Yes"/><label for="atsiY" class="px-4 py-1.5 rounded-l-full cursor-pointer">Yes</label>
+            <input id="atsiN" name="atsi" type="radio" value="No"/><label for="atsiN" class="px-4 py-1.5 rounded-r-full cursor-pointer">No</label>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Accordion Section 1.2: Training Details -->
+    <!-- 1.2 Training Details -->
     <button class="w-full flex justify-between items-center p-4 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 transition duration-150 accordion-header" data-target="p2">
       <span class="font-bold text-lg">1.2 Training Details</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p2" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0; padding-top: 0; padding-bottom: 0;">
+    <div id="p2" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        <!-- Contract Type Selection -->
-        <div>
+        <div class="md:col-span-2">
           <label class="text-xs font-semibold block mb-1">Contract Type</label>
           <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
-            <input id="ctA" name="contractType" type="radio" value="Apprentice" /><label for="ctA" class="px-3 py-1.5 rounded-l-full cursor-pointer hover:bg-primary/10 transition duration-100">Apprentice</label>
-            <input id="ctNT" name="contractType" type="radio" value="New Entrant Trainee" /><label for="ctNT" class="px-3 py-1.5 cursor-pointer hover:bg-primary/10 transition duration-100">New Entrant Trainee</label>
-            <input id="ctEW" name="contractType" type="radio" value="Existing Worker Trainee" /><label for="ctEW" class="px-3 py-1.5 rounded-r-full cursor-pointer hover:bg-primary/10 transition duration-100">Existing Worker Trainee</label>
+            <input id="ctA" name="contractType" type="radio" value="Apprentice" /><label for="ctA" class="px-4 py-1.5 rounded-l-full cursor-pointer">Apprentice</label>
+            <input id="ctNT" name="contractType" type="radio" value="New Entrant Trainee" /><label for="ctNT" class="px-4 py-1.5 cursor-pointer">New Entrant Trainee</label>
+            <input id="ctEW" name="contractType" type="radio" value="Existing Worker Trainee" /><label for="ctEW" class="px-4 py-1.5 rounded-r-full cursor-pointer">Existing Worker Trainee</label>
           </div>
         </div>
-
-        <!-- Employment Type Selection -->
-        <div>
-          <label class="text-xs font-semibold block mb-1">Employment Type</label>
+        <div><label class="text-xs font-semibold block mb-1">Employment Type</label>
           <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
-            <input id="etFT" name="employmentType" type="radio" value="Full Time" /><label for="etFT" class="px-4 py-1.5 rounded-l-full cursor-pointer hover:bg-primary/10 transition duration-100">Full Time</label>
-            <input id="etPT" name="employmentType" type="radio" value="Part Time" /><label for="etPT" class="px-4 py-1.5 rounded-r-full cursor-pointer hover:bg-primary/10 transition duration-100">Part Time</label>
+            <input id="etFT" name="employmentType" type="radio" value="Full Time" /><label for="etFT" class="px-4 py-1.5 rounded-l-full cursor-pointer">Full Time</label>
+            <input id="etPT" name="employmentType" type="radio" value="Part Time" /><label for="etPT" class="px-4 py-1.5 rounded-r-full cursor-pointer">Part Time</label>
           </div>
         </div>
-
-        <!-- Hours Per Week (Updated to 1 decimal place) -->
-        <div><label class="text-xs font-semibold block mb-1">Hours Per Week</label>
-          <input data-field="hoursPerWeek" type="text" inputmode="decimal" pattern="^\d{1,2}(\.\d{1})?$" placeholder="e.g., 38.0" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/>
-        </div>
-        
-        <!-- Vocational Title -->
-        <div><label class="text-xs font-semibold block mb-1">Vocational Title</label>
-          <input data-field="vocationalTitle" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/>
-        </div>
-
-        <!-- VTO ID (5 digit numeric) -->
-        <div><label class="text-xs font-semibold block mb-1">VTO ID (5 digits)</label>
-          <input data-field="vtoId" type="text" pattern="\d{5}" maxlength="5" placeholder="e.g., 12345" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/>
-        </div>
-
-        <!-- Qualification Level -->
-        <div><label class="text-xs font-semibold block mb-1">Qualification Level</label>
-          <input data-field="qualificationLevel" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/>
-        </div>
-
-        <!-- Funding Source Selection -->
-        <div class="md:col-span-2">
-          <label class="text-xs font-semibold block mb-1">Funding Source</label>
+        <div><label class="text-xs font-semibold block mb-1">Hours Per Week</label><input data-field="hoursPerWeek" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">TC Start Date</label><input data-field="tcStartDate" type="text" placeholder="DD/MM/YYYY" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">TC End Date</label><input data-field="tcEndDate" type="text" placeholder="DD/MM/YYYY" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Vocational Title</label><input data-field="vocationalTitle" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">VTO ID</label><input data-field="vtoId" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Qualification Level</label><input data-field="qualificationLevel" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">National Code</label><input data-field="nationalCode" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div class="md:col-span-2"><label class="text-xs font-semibold block mb-1">Mode of Delivery</label>
           <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
-            <input id="fsFS" name="fundingSource" type="radio" value="Fee for Service" /><label for="fsFS" class="px-3 py-1.5 rounded-l-full cursor-pointer hover:bg-primary/10 transition duration-100">Fee for Service</label>
-            <input id="fsGS" name="fundingSource" type="radio" value="Government Subsidised" /><label for="fsGS" class="px-3 py-1.5 rounded-r-full cursor-pointer hover:bg-primary/10 transition duration-100">Government Subsidised</label>
+            <input id="modClass" name="modeOfDelivery" type="radio" value="Classroom Based" /><label for="modClass" class="px-4 py-1.5 rounded-l-full cursor-pointer">Classroom Based</label>
+            <input id="modElec" name="modeOfDelivery" type="radio" value="Electronic" /><label for="modElec" class="px-4 py-1.5 cursor-pointer">Electronic</label>
+            <input id="modEmp" name="modeOfDelivery" type="radio" value="Employment Based" /><label for="modEmp" class="px-4 py-1.5 cursor-pointer">Employment Based</label>
+            <input id="modOth" name="modeOfDelivery" type="radio" value="Other" /><label for="modOth" class="px-4 py-1.5 rounded-r-full cursor-pointer">Other</label>
           </div>
         </div>
-        
-        <!-- Disability Yes/No -->
-        <div>
-            <label class="text-xs font-semibold block mb-1">Disability</label>
+        <div class="md:col-span-2"><label class="text-xs font-semibold block mb-1">Funding Source</label>
+          <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
+            <input id="fsFS" name="fundingSource" type="radio" value="Fee for Service" /><label for="fsFS" class="px-4 py-1.5 rounded-l-full cursor-pointer">Fee for Service</label>
+            <input id="fsGS" name="fundingSource" type="radio" value="Government Subsidised" /><label for="fsGS" class="px-4 py-1.5 rounded-r-full cursor-pointer">Government Subsidised</label>
+          </div>
+        </div>
+        <div class="md:col-span-2 mt-4 border-t border-indigo-200 pt-2"><h3 class="font-bold text-sm text-primary">Classroom Training Address</h3></div>
+        <div><label class="text-xs font-semibold block mb-1">Street</label><input data-field="streetRTO" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">City</label><input data-field="cityRTO" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">State</label><input data-field="stateRTO" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Postcode</label><input data-field="postcodeRTO" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Disability</label>
             <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
-                <input id="disY" name="disability" type="radio" value="Yes" /><label for="disY" class="px-4 py-1.5 rounded-l-full cursor-pointer hover:bg-primary/10 transition duration-100">Yes</label>
-                <input id="disN" name="disability" type="radio" value="No" /><label for="disN" class="px-4 py-1.5 rounded-r-full cursor-pointer hover:bg-primary/10 transition duration-100">No</label>
+                <input id="disY" name="disability" type="radio" value="Yes" /><label for="disY" class="px-4 py-1.5 rounded-l-full cursor-pointer">Yes</label>
+                <input id="disN" name="disability" type="radio" value="No" /><label for="disN" class="px-4 py-1.5 rounded-r-full cursor-pointer">No</label>
             </div>
         </div>
-
-        <!-- DAAWS Yes/No -->
-        <div>
-            <label class="text-xs font-semibold block mb-1">DAAWS</label>
+        <div><label class="text-xs font-semibold block mb-1">DAAWS</label>
             <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
-                <input id="daawY" name="daaws" type="radio" value="Yes" /><label for="daawY" class="px-4 py-1.5 rounded-l-full cursor-pointer hover:bg-primary/10 transition duration-100">Yes</label>
-                <input id="daawN" name="daaws" type="radio" value="No" /><label for="daawN" class="px-4 py-1.5 rounded-r-full cursor-pointer hover:bg-primary/10 transition duration-100">No</label>
+                <input id="daawY" name="daaws" type="radio" value="Yes" /><label for="daawY" class="px-4 py-1.5 rounded-l-full cursor-pointer">Yes</label>
+                <input id="daawN" name="daaws" type="radio" value="No" /><label for="daawN" class="px-4 py-1.5 rounded-r-full cursor-pointer">No</label>
             </div>
         </div>
-
-        <!-- RTO Classroom Training Address Header -->
-        <div class="md:col-span-2">
-          <h3 class="font-bold text-sm mt-4 text-primary">RTO Classroom Training Address</h3>
-          <p class="text-xs text-gray-500 mb-2">The physical location where classroom training occurs.</p>
-        </div>
-
-        <!-- RTO Classroom Training Address Fields -->
-        <div><label class="text-xs font-semibold block mb-1">Street Address (RTO)</label><input data-field="streetRTO" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Town/City (RTO)</label><input data-field="cityRTO" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">State (RTO)</label><input data-field="stateRTO" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Postcode (RTO)</label><input data-field="postcodeRTO" pattern="\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        
-        <!-- Remaining Training Details Fields -->
-        <div><label class="text-xs font-semibold block mb-1">TC Start Date</label><input data-field="tcStartDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">TC End Date</label><input data-field="tcEndDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
       </div>
     </div>
-    
-    <!-- Accordion Section 1.3: ACAP Details (Apprenticeship Connect Australia Provider) -->
+
+    <!-- 1.3 ACAP Details -->
     <button class="w-full flex justify-between items-center p-4 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 transition duration-150 accordion-header" data-target="p2_3">
       <span class="font-bold text-lg">1.3 Apprenticeship Connect Australia Provider (ACAP)</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p2_3" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0; padding-top: 0; padding-bottom: 0;">
+    <div id="p2_3" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- ACAP Provider Name -->
-        <div class="md:col-span-2"><label class="text-xs font-semibold block mb-1">ACAP Provider Name</label><input data-field="acapProviderName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        
-        <!-- Contact Name -->
-        <div><label class="text-xs font-semibold block mb-1">Contact Name</label><input data-field="acapContactName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        
-        <!-- Email -->
-        <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="acapEmail" type="email" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-
-        <!-- Telephone -->
-        <div><label class="text-xs font-semibold block mb-1">Phone</label><input data-field="acapTel" type="text" pattern="\d{10}" maxlength="10" placeholder="e.g., 1300483786" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        
-        <!-- Mobile -->
-        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="acapMob" type="text" pattern="04\d{8}" maxlength="10" placeholder="e.g., 0448028114" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-
-        <!-- Date -->
-        <div class="md:col-span-2"><label class="text-xs font-semibold block mb-1">Date</label><input data-field="acapDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-
+        <div class="md:col-span-2"><label class="text-xs font-semibold block mb-1">ACAP Provider Name</label><input data-field="acapProviderName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Contact Name</label><input data-field="acapContactName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="acapEmail" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Phone</label><input data-field="acapTel" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="acapMob" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div class="md:col-span-2"><label class="text-xs font-semibold block mb-1">Date</label><input data-field="acapDate" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
       </div>
     </div>
 
-    <!-- Accordion Section 1.4: Registered Training Organisation (RTO) -->
+    <!-- 1.4 RTO Details -->
     <button class="w-full flex justify-between items-center p-4 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 transition duration-150 accordion-header" data-target="p3">
       <span class="font-bold text-lg">1.4 Registered Training Organisation (RTO)</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p3" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0; padding-top: 0; padding-bottom: 0;">
+    <div id="p3" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div><label class="text-xs font-semibold block mb-1">Legal Name</label><input data-field="rtoLegalName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        
-        <!-- Trading Name -->
-        <div><label class="text-xs font-semibold block mb-1">Trading Name</label><input data-field="rtoTradingName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-
-        <div><label class="text-xs font-semibold block mb-1">National Code</label><input data-field="rtoNationalCode" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">ABN</label><input data-field="rtoABN" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        
-        <div><label class="text-xs font-semibold block mb-1">Contact Name</label><input data-field="rtoContactName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="rtoEmail" type="email" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        
-        <!-- Mobile Field -->
-        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="rtoMobile" type="text" pattern="04\d{8}" maxlength="10" placeholder="e.g., 0412345678" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        
-        <!-- Placeholder for symmetry -->
-        <div></div> 
-
-        <div><label class="text-xs font-semibold block mb-1">Start Date</label><input data-field="rtoStartDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Estimated End Date</label><input data-field="estimatedRTOEndDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Start Date</label><input data-field="rtoStartDate" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Estimated End Date</label><input data-field="estimatedRTOEndDate" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Legal Name</label><input data-field="rtoLegalName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Trading Name</label><input data-field="rtoTradingName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">National Code</label><input data-field="rtoNationalCode" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">ABN</label><input data-field="rtoABN" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Contact Name</label><input data-field="rtoContactName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="rtoEmail" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="rtoMobile" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
       </div>
     </div>
 
-    <!-- Accordion Section 1.5: Employer Details - UPDATED -->
+    <!-- 1.5 Employer Details -->
     <button class="w-full flex justify-between items-center p-4 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 transition duration-150 accordion-header" data-target="p4">
       <span class="font-bold text-lg">1.5 Employer Details</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p4" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0; padding-top: 0; padding-bottom: 0;">
+    <div id="p4" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div><label class="text-xs font-semibold block mb-1">Legal Name</label><input data-field="employerLegalName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Trading Name</label><input data-field="employerTradingName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Legal Name</label><input data-field="employerLegalName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Licence No.</label><input data-field="employerLicenceNo" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Trading Name</label><input data-field="employerTradingName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">ABN</label><input data-field="employerABN" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
         
-        <!-- Host Employer (Yes/No) field -->
+        <!-- Main Section Employer Address -->
+        <div><label class="text-xs font-semibold block mb-1">Street Address</label><input data-field="employerMainStreet" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Suburb</label><input data-field="employerMainSuburb" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">State</label><input data-field="employerMainState" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Postcode</label><input data-field="employerMainPostcode" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+
+        <div><label class="text-xs font-semibold block mb-1">Contact Name</label><input data-field="employerContactNameTop" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="employerMobileTop" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+
+        <!-- Workplace Training Address Subsection -->
+        <div class="md:col-span-2 mt-4 border-t border-indigo-200 pt-2"><h3 class="font-bold text-sm text-primary">Workplace Training Address</h3></div>
+        <div><label class="text-xs font-semibold block mb-1">Street</label><input data-field="employerStreetAddress" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Suburb</label><input data-field="employerSuburb" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">State</label><input data-field="employerState" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Postcode</label><input data-field="employerPostcode" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        
         <div>
           <label class="text-xs font-semibold block mb-1">Host Employer</label>
           <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
-            <input id="hostY" name="hostEmployer" type="radio" value="Yes" /><label for="hostY" class="px-4 py-1.5 rounded-l-full cursor-pointer hover:bg-primary/10 transition duration-100">Yes</label>
-            <input id="hostN" name="hostEmployer" type="radio" value="No" /><label for="hostN" class="px-4 py-1.5 rounded-r-full cursor-pointer hover:bg-primary/10 transition duration-100">No</label>
+            <input id="hostY" name="hostEmployer" type="radio" value="Yes" /><label for="hostY" class="px-4 py-1.5 rounded-l-full cursor-pointer">Yes</label>
+            <input id="hostN" name="hostEmployer" type="radio" value="No" /><label for="hostN" class="px-4 py-1.5 rounded-r-full cursor-pointer">No</label>
           </div>
         </div>
-
-        <div><label class="text-xs font-semibold block mb-1">ABN</label><input data-field="employerABN" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Licence No.</label><input data-field="employerLicenceNo" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Street Address</label><input data-field="employerStreetAddress" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Suburb</label><input data-field="employerSuburb" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">State</label><input data-field="employerState" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Postcode</label><input data-field="employerPostcode" pattern="\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Trading Name</label><input data-field="employerTradingName2" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
         
-        <div><label class="text-xs font-semibold block mb-1">Contact Name</label><input data-field="employerContactName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="employerEmail" type="email" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        
-        <!-- NEW Mobile Field -->
-        <div><label class="text-xs font-semibold block mb-1">Mobile</label><input data-field="employerMobile" type="text" pattern="04\d{8}" maxlength="10" placeholder="e.g., 0498765432" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        
+        <div><label class="text-xs font-semibold block mb-1">Contact Name</label><input data-field="employerContactName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+        <div><label class="text-xs font-semibold block mb-1">Email</label><input data-field="employerEmail" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
       </div>
     </div>
 
-    <!-- Accordion Section 1.6: Sign-Off -->
+    <!-- 1.6 Acceptance of Agreement -->
     <button class="w-full flex justify-between items-center p-4 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 transition duration-150 accordion-header" data-target="p5">
       <span class="font-bold text-lg">1.6 Acceptance of Agreement (Sign-off)</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p5" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0; padding-top: 0; padding-bottom: 0;">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div><label class="text-xs font-semibold block mb-1">RTO Print Name</label><input data-field="rtoPrintName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">RTO Position</label><input data-field="rtoPosition" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">RTO Date</label><input data-field="rtoDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-
-        <div><label class="text-xs font-semibold block mb-1">Employer Position</label><input data-field="employerPosition" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Employer Date</label><input data-field="employerDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-
-        <div><label class="text-xs font-semibold block mb-1">Apprentice Print Name</label><input data-field="apprenticePrintName" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
-        <div><label class="text-xs font-semibold block mb-1">Apprentice Date</label><input data-field="apprenticeDate" type="text" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}" class="w-full p-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition duration-150"/></div>
+    <div id="p5" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
+      <div class="space-y-6">
+        <div class="bg-white/50 p-4 rounded-lg border border-indigo-100">
+            <h3 class="text-primary font-bold text-sm mb-3 uppercase tracking-wider">Registered Training Organisation</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div><label class="text-xs font-semibold block mb-1">Print Name</label><input data-field="rtoPrintName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+                <div><label class="text-xs font-semibold block mb-1">Position</label><input data-field="rtoPosition" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+                <div><label class="text-xs font-semibold block mb-1">Date</label><input data-field="rtoDate" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+            </div>
+        </div>
+        <div class="bg-white/50 p-4 rounded-lg border border-indigo-100">
+            <h3 class="text-primary font-bold text-sm mb-3 uppercase tracking-wider">Employer</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div><label class="text-xs font-semibold block mb-1">Print Name</label><input data-field="employerAcceptancePrintName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+                <div><label class="text-xs font-semibold block mb-1">Position</label><input data-field="employerPosition" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+                <div><label class="text-xs font-semibold block mb-1">Date</label><input data-field="employerDate" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+            </div>
+        </div>
+        <div class="bg-white/50 p-4 rounded-lg border border-indigo-100">
+            <h3 class="text-primary font-bold text-sm mb-3 uppercase tracking-wider">Apprentice / Trainee</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label class="text-xs font-semibold block mb-1">Print Name</label><input data-field="apprenticePrintName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+                <div><label class="text-xs font-semibold block mb-1">Date</label><input data-field="apprenticeDate" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
+            </div>
+        </div>
       </div>
     </div>
 
   </section>
 
-<script type="module">
-    // --- Utility Functions ---
+  <script type="module">
+    const apiKey = ""; 
+    const formFields = Array.from(document.querySelectorAll('[data-field]'));
+    const radioGroups = Array.from(new Set(Array.from(document.querySelectorAll('input[type="radio"]')).map(r => r.name)));
 
-    /**
-     * Map all data-field elements for easy programmatic access.
-     * @type {Object<string, HTMLElement>}
-     */
-    const formFieldMap = {};
-    document.querySelectorAll('[data-field]').forEach(el => formFieldMap[el.dataset.field] = el);
+    // Utility to clean strings for fuzzy matching
+    const cleanStr = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 
-    /**
-     * Populate the form fields with data from an object.
-     * @param {Object} obj - The data object to populate the form with.
-     */
     window.populate = (obj = {}) => {
+      const mappingReport = document.getElementById('mappingReport');
+      const unmapped = [];
+      mappingReport.classList.add('hidden');
+      mappingReport.innerHTML = '';
+
       Object.entries(obj).forEach(([key, value]) => {
         if (value === null || value === undefined) return;
 
-        // Special handling for radio groups
-        if (key === 'gender' || key === 'atsi' || key === 'supportIndicator' || key === 'contractType' || key === 'employmentType' || key === 'fundingSource' || key === 'disability' || key === 'daaws' || key === 'hostEmployer') {
-          const radio = document.querySelector(`input[name="${key}"][value="${value}"]`);
-          if (radio) {
-            radio.checked = true;
-            // Visually update the segmented control
-            document.querySelectorAll(`input[name="${key}"] + label`).forEach(label => {
-              label.classList.remove('bg-primary', 'text-white', 'font-bold');
+        let matched = false;
+        const targetKey = cleanStr(key);
+
+        // 1. Try to find an input by data-field fuzzy match
+        const field = formFields.find(f => cleanStr(f.dataset.field) === targetKey);
+        if (field) {
+            field.value = value;
+            matched = true;
+        }
+
+        // 2. Try to find a radio group fuzzy match
+        const groupName = radioGroups.find(g => cleanStr(g) === targetKey);
+        if (groupName) {
+            const val = String(value);
+            // Look for radio with exact value match or common variations
+            const radios = document.querySelectorAll(`input[name="${groupName}"]`);
+            radios.forEach(r => {
+                if (cleanStr(r.value) === cleanStr(val) || (cleanStr(val).includes(cleanStr(r.value)) && r.value.length > 1)) {
+                    r.checked = true;
+                    r.dispatchEvent(new Event('change')); // Trigger visual update
+                    matched = true;
+                }
             });
-            const checkedLabel = document.querySelector(`input[name="${key}"]:checked + label`);
-            if (checkedLabel) {
-                checkedLabel.classList.add('bg-primary', 'text-white', 'font-bold');
-            }
-          }
-        } else if (formFieldMap[key]) {
-          // Standard input/field population
-          formFieldMap[key].value = value;
+        }
+
+        if (!matched) {
+            unmapped.push(key);
         }
       });
+
+      if (unmapped.length > 0) {
+          mappingReport.classList.remove('hidden');
+          mappingReport.innerHTML = `<strong>Note:</strong> Some fields from the document were not mapped because they don't exist on this form: <span class="italic text-gray-500">${unmapped.join(', ')}</span>.`;
+      }
     };
 
-    // --- Accordion Logic ---
     document.querySelectorAll('.accordion-header').forEach(h => {
-      // Add initial listener for opening/closing
       h.addEventListener('click', () => {
         const target = document.getElementById(h.dataset.target);
         const arrow = h.querySelector('span:last-child');
         const isClosed = target.style.maxHeight === '0px' || !target.style.maxHeight;
 
-        // Close all other accordions first
-        document.querySelectorAll('.accordion-content').forEach(content => {
-             if (content !== target) {
-                content.style.maxHeight = '0px';
-                content.style.paddingTop = '0';
-                content.style.paddingBottom = '0';
-                const relatedArrow = content.previousElementSibling.querySelector('span:last-child');
-                relatedArrow.style.transform = 'rotate(0deg)';
-             }
-        });
-
-        // Toggle current accordion
         if (isClosed) {
-          // Open
-          const innerHeight = target.scrollHeight; // Get calculated height of content
-          target.style.maxHeight = innerHeight + 40 + 'px'; // + padding buffer
+          target.style.maxHeight = target.scrollHeight + 200 + 'px';
           target.style.paddingTop = '1rem';
           target.style.paddingBottom = '1rem';
           arrow.style.transform = 'rotate(180deg)';
         } else {
-          // Close
-          target.style.maxHeight = target.scrollHeight + 'px'; // Set current height before transition out
-          // Force a reflow before setting to 0 to ensure smooth transition
-          requestAnimationFrame(() => {
-            target.style.maxHeight = '0px';
-            target.style.paddingTop = '0';
-            target.style.paddingBottom = '0';
-            arrow.style.transform = 'rotate(0deg)';
-          });
-        }
-      });
-
-      // Initial state setup: close all except the first one (p1)
-      const targetId = h.dataset.target;
-      const target = document.getElementById(targetId);
-      const arrow = h.querySelector('span:last-child');
-      if (targetId !== 'p1') {
           target.style.maxHeight = '0px';
           target.style.paddingTop = '0';
           target.style.paddingBottom = '0';
           arrow.style.transform = 'rotate(0deg)';
-      } else {
-          // Ensure p1's arrow points down initially
-          arrow.style.transform = 'rotate(180deg)';
-      }
+        }
+      });
     });
 
-    // --- File Upload Simulation Logic ---
     const fileInput = document.getElementById('fileInput');
     const statusBox = document.getElementById('uploadStatus');
 
-    fileInput.addEventListener('change', async () => {
-      const file = fileInput.files[0];
-      if (!file) return;
+    async function extractDataFromDocument(base64Data, mimeType) {
+        // Collect existing fields to give the AI a strict schema to follow
+        const schemaHint = {};
+        formFields.forEach(f => schemaHint[f.dataset.field] = "string");
+        radioGroups.forEach(g => schemaHint[g] = "string (one of the valid options)");
 
-      statusBox.innerHTML = '<div class="spinner inline-block mr-2 align-middle"></div> <span class="align-middle text-primary font-semibold">Processing Document...</span>';
+        const systemPrompt = `You are a specialized OCR and data extraction assistant for Training Plan Proposals (TPP). 
+        Extract all data from the document. 
+        MANDATORY: Map the extracted data to these specific JSON keys if possible: ${Object.keys(schemaHint).join(', ')}. 
+        If a field exists in the document but is NOT in this list, include it using its original name.`;
 
-      // --- Simulation of API Call and Data Extraction ---
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network latency
+        const payload = {
+            contents: [{
+                role: "user",
+                parts: [
+                    { text: "Extract and map all fields from this document into the required JSON structure." },
+                    { inlineData: { mimeType: mimeType, data: base64Data } }
+                ]
+            }],
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: { responseMimeType: "application/json" }
+        };
 
-      // Mock Extracted Data (Realistic sample from a processed TPP)
-      const mockExtractedData = {
-          givenName: "Alexandra",
-          familyName: "Chen",
-          middleName: "",
-          dob: "15/07/1998",
-          gender: "Female", // Must match radio value
-          atsi: "No",      // Must match radio value
-          streetAddress: "45 Elm Street",
-          suburb: "Springfield",
-          state: "NSW",
-          postcode: "2000",
-          mobile: "0412345678",
-          telephone: "02 9876 5432",
-          supportIndicator: "Yes", // Must match radio value
-          email: "alex.chen@example.com",
-
-          // Training Details (Section 1.2)
-          contractType: "New Entrant Trainee", 
-          employmentType: "Full Time", 
-          hoursPerWeek: "38.0", 
-          vocationalTitle: "Certificate IV in Cyber Security", 
-          vtoId: "98765", 
-          qualificationLevel: "Certificate IV", 
-          fundingSource: "Government Subsidised", 
-          disability: "No", 
-          daaws: "No",
-          tcStartDate: "01/03/2025",
-          tcEndDate: "01/03/2027",
-          
-          // RTO Classroom Training Address
-          streetRTO: "100 Technology Rd", 
-          cityRTO: "Pyrmont", 
-          stateRTO: "NSW", 
-          postcodeRTO: "2009", 
-
-          // ACAP Details (Section 1.3)
-          acapProviderName: "Mas National",
-          acapContactName: "Raelene Matthew",
-          acapEmail: "TPPnotifications@masnational.com.au",
-          acapTel: "1300483786",
-          acapMob: "0448028114",
-          acapDate: "20/11/2025",
-
-          // RTO Details (Section 1.4)
-          rtoLegalName: "TechSkills Institute Pty Ltd",
-          rtoNationalCode: "90123",
-          rtoTradingName: "TSI Training",
-          rtoABN: "12 345 678 901",
-          rtoContactName: "Jane Doe",
-          rtoEmail: "jane.doe@tsi.edu.au",
-          rtoMobile: "0499887766", 
-          rtoStartDate: "01/03/2025",
-          estimatedRTOEndDate: "01/03/2027",
-          
-          // Employer Details (Section 1.5) - UPDATED
-          employerLegalName: "Innovate Solutions Australia",
-          employerTradingName: "Innovate Tech",
-          hostEmployer: "No", // NEW field
-          employerABN: "98 765 432 109",
-          employerLicenceNo: "LIC-7890",
-          employerStreetAddress: "10 Innovation Drive",
-          employerSuburb: "Sydney",
-          employerState: "NSW",
-          employerPostcode: "2000",
-          employerContactName: "Mark Smith",
-          employerEmail: "mark.smith@innovate.com.au",
-          employerMobile: "0498765432", // NEW field
-
-          // Sign-off Details (Section 1.6)
-          rtoPrintName: "Jane Doe",
-          rtoPosition: "Training Manager",
-          rtoDate: "28/02/2025",
-          employerPosition: "Operations Director",
-          employerDate: "29/02/2025",
-          apprenticePrintName: "Alexandra Chen",
-          apprenticeDate: "01/03/2025"
-      };
-
-      try {
-        // Assume API call was successful
-        const json = { isValidTPP: true, extractedData: mockExtractedData };
-
-        if (json.isValidTPP) {
-          window.populate(json.extractedData);
-          statusBox.innerHTML = '<span class="text-green-600 font-bold">✓ Form populated successfully!</span>';
-        } else {
-          statusBox.innerHTML = '<span class="text-red-600 font-bold">⚠ Invalid document structure.</span>';
+        let lastError;
+        for (let i = 0; i < 5; i++) {
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error('API request failed');
+                const result = await response.json();
+                return JSON.parse(result.candidates[0].content.parts[0].text);
+            } catch (err) {
+                lastError = err;
+                await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+            }
         }
-      } catch(e) {
-        statusBox.innerHTML = '<span class="text-red-600 font-bold">❌ Error processing file (Simulated).</span>';
-        console.error("Simulation error:", e);
-      }
+        throw lastError;
+    }
+
+    fileInput.addEventListener('change', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        statusBox.innerHTML = '<div class="spinner inline-block mr-2 align-middle"></div> <span class="align-middle text-primary font-semibold">AI is mapping PDF fields to web form...</span>';
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64Data = e.target.result.split(',')[1];
+            try {
+                const data = await extractDataFromDocument(base64Data, file.type);
+                window.populate(data);
+                statusBox.innerHTML = '<span class="text-green-600 font-bold">✓ Field mapping successful!</span>';
+                const p1 = document.getElementById('p1');
+                p1.style.maxHeight = p1.scrollHeight + 200 + 'px';
+            } catch (err) {
+                statusBox.innerHTML = '<span class="text-red-600 font-bold">❌ AI mapping failed.</span>';
+            }
+        };
+        reader.readAsDataURL(file);
     });
 
-    // Ensure initial radio button state is applied on load if manually set
+    // Handle visual updates for radios
     document.querySelectorAll('.segmented-control input[type=radio]').forEach(radio => {
         radio.addEventListener('change', () => {
-            document.querySelectorAll(`input[name="${radio.name}"] + label`).forEach(label => {
-                label.classList.remove('bg-primary', 'text-white', 'font-bold');
+            document.querySelectorAll(`input[name="${radio.name}"]`).forEach(r => {
+                const label = document.querySelector(`label[for="${r.id}"]`);
+                if (label) label.classList.remove('bg-primary', 'text-white', 'font-bold');
             });
-            const checkedLabel = document.querySelector(`input[name="${radio.name}"]:checked + label`);
-            if (checkedLabel) {
-                checkedLabel.classList.add('bg-primary', 'text-white', 'font-bold');
-            }
+            const checkedLabel = document.querySelector(`label[for="${radio.id}"]`);
+            if (checkedLabel) checkedLabel.classList.add('bg-primary', 'text-white', 'font-bold');
         });
     });
-
   </script>
-
 </body>
 </html>
