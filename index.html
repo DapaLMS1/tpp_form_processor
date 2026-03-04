@@ -288,7 +288,10 @@
   </section>
 
   <script type="module">
-    const apiKey = ""; 
+    // ATTENTION: To use this outside of this prototype environment, 
+    // you MUST provide a valid Gemini API Key from https://aistudio.google.com/
+    const apiKey = "AIzaSyAdi8wHLCuEVI_Uq_YOZr241ZiraK9j5lg"; 
+
     const formFields = Array.from(document.querySelectorAll('[data-field]'));
     const radioGroups = Array.from(new Set(Array.from(document.querySelectorAll('input[type="radio"]')).map(r => r.name)));
 
@@ -344,7 +347,7 @@
 
       if (unmapped.length > 0) {
           mappingReport.classList.remove('hidden');
-          mappingReport.innerHTML = `<strong>Note:</strong> Unmapped: <span class="italic text-gray-500">${unmapped.join(', ')}</span>.`;
+          mappingReport.innerHTML = `<strong>Note:</strong> Unmapped fields: <span class="italic text-gray-500">${unmapped.join(', ')}</span>.`;
       }
     };
 
@@ -356,6 +359,10 @@
     const statusBox = document.getElementById('uploadStatus');
 
     async function extractDataFromDocument(base64Data, mimeType) {
+        if (!apiKey || apiKey === "") {
+            throw new Error("API Key is missing. Please add your key to the script.");
+        }
+
         const schemaHint = {};
         formFields.forEach(f => schemaHint[f.dataset.field] = "string");
         radioGroups.forEach(g => schemaHint[g] = "string");
@@ -366,7 +373,7 @@
             contents: [{
                 role: "user",
                 parts: [
-                    { text: "Extract and map data into JSON." },
+                    { text: "Extract and map data into JSON exactly as structured." },
                     { inlineData: { mimeType: mimeType, data: base64Data } }
                 ]
             }],
@@ -381,10 +388,17 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error();
+                
+                if (!response.ok) {
+                    const errorDetails = await response.text();
+                    console.error("API Error Response:", errorDetails);
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
                 const result = await response.json();
                 return JSON.parse(result.candidates[0].content.parts[0].text);
             } catch (err) {
+                console.warn(`Retry ${i+1} failed...`, err);
                 if (i === 4) throw err;
                 await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
             }
@@ -402,10 +416,10 @@
                 const data = await extractDataFromDocument(base64Data, file.type);
                 window.populate(data);
                 statusBox.innerHTML = '<span class="text-green-600 font-bold">✓ Success!</span>';
-                // Open first section upon successful load
                 toggleAccordion('p1', true);
             } catch (err) {
-                statusBox.innerHTML = '<span class="text-red-600 font-bold">❌ AI mapping failed.</span>';
+                console.error("Extraction failed:", err);
+                statusBox.innerHTML = `<span class="text-red-600 font-bold">❌ AI mapping failed. ${err.message === "API Key is missing. Please add your key to the script." ? "Check API Key." : "Try again later."}</span>`;
             }
         };
         reader.readAsDataURL(file);
