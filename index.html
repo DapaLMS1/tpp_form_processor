@@ -6,7 +6,20 @@
   <title>TPP Editor Prototype</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .accordion-content { transition: max-height .3s ease, padding .3s ease; overflow: hidden; }
+    /* Ensure no padding is applied when closed to keep height strictly 0 */
+    .accordion-content { 
+      transition: max-height .3s ease, padding .3s ease; 
+      overflow: hidden; 
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+    
+    /* Utility class for when the accordion is active */
+    .accordion-content.is-open {
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+
     .segmented-control input[type=radio]{display:none;}
     .segmented-control input[type=radio]:checked + label{background:#4B0082;color:white;font-weight:700;}
     .spinner{border:3px solid rgba(0,0,0,.08);border-top:3px solid #4B0082;border-radius:50%;width:20px;height:20px;animation:spin 1s linear infinite;}@keyframes spin{to{transform:rotate(360deg);}}
@@ -48,7 +61,7 @@
       <span class="font-bold text-lg">1.1 Apprentice / Trainee Personal Details</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p1" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
+    <div id="p1" class="accordion-content px-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div><label class="text-xs font-semibold block mb-1">Training Plan</label>
           <div class="segmented-control inline-flex border border-primary rounded-full mt-1 text-sm bg-white shadow-inner">
@@ -105,7 +118,7 @@
       <span class="font-bold text-lg">1.2 Training Details</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p2" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
+    <div id="p2" class="accordion-content px-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="md:col-span-2">
           <label class="text-xs font-semibold block mb-1">Contract Type</label>
@@ -167,7 +180,7 @@
       <span class="font-bold text-lg">1.3 Apprenticeship Connect Australia Provider (ACAP)</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p2_3" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
+    <div id="p2_3" class="accordion-content px-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="md:col-span-2"><label class="text-xs font-semibold block mb-1">ACAP Provider Name</label><input data-field="acapProviderName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
         <div><label class="text-xs font-semibold block mb-1">Contact Name</label><input data-field="acapContactName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
@@ -183,7 +196,7 @@
       <span class="font-bold text-lg">1.4 Registered Training Organisation (RTO)</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p3" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
+    <div id="p3" class="accordion-content px-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div><label class="text-xs font-semibold block mb-1">Start Date</label><input data-field="rtoStartDate" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
         <div><label class="text-xs font-semibold block mb-1">Estimated End Date</label><input data-field="estimatedRTOEndDate" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
@@ -202,7 +215,7 @@
       <span class="font-bold text-lg">1.5 Employer Details</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p4" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
+    <div id="p4" class="accordion-content px-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div><label class="text-xs font-semibold block mb-1">Legal Name</label><input data-field="employerLegalName" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
         <div><label class="text-xs font-semibold block mb-1">Licence No.</label><input data-field="employerLicenceNo" class="w-full p-2 border border-indigo-300 rounded-lg"/></div>
@@ -244,7 +257,7 @@
       <span class="font-bold text-lg">1.6 Acceptance of Agreement (Sign-off)</span>
       <span class="transform transition duration-300">▼</span>
     </button>
-    <div id="p5" class="accordion-content p-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
+    <div id="p5" class="accordion-content px-4 bg-indigo-50 rounded-lg border border-indigo-200" style="max-height:0;">
       <div class="space-y-6">
         <div class="bg-white/50 p-4 rounded-lg border border-indigo-100">
             <h3 class="text-primary font-bold text-sm mb-3 uppercase tracking-wider">Registered Training Organisation</h3>
@@ -279,8 +292,26 @@
     const formFields = Array.from(document.querySelectorAll('[data-field]'));
     const radioGroups = Array.from(new Set(Array.from(document.querySelectorAll('input[type="radio"]')).map(r => r.name)));
 
-    // Utility to clean strings for fuzzy matching
     const cleanStr = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    function toggleAccordion(id, forceOpen = false) {
+      const target = document.getElementById(id);
+      const header = document.querySelector(`[data-target="${id}"]`);
+      if (!target || !header) return;
+      
+      const arrow = header.querySelector('span:last-child');
+      const isCurrentlyOpen = target.classList.contains('is-open');
+
+      if (!isCurrentlyOpen || forceOpen) {
+        target.classList.add('is-open');
+        target.style.maxHeight = target.scrollHeight + 200 + 'px';
+        arrow.style.transform = 'rotate(180deg)';
+      } else {
+        target.classList.remove('is-open');
+        target.style.maxHeight = '0px';
+        arrow.style.transform = 'rotate(0deg)';
+      }
+    }
 
     window.populate = (obj = {}) => {
       const mappingReport = document.getElementById('mappingReport');
@@ -290,82 +321,52 @@
 
       Object.entries(obj).forEach(([key, value]) => {
         if (value === null || value === undefined) return;
-
         let matched = false;
         const targetKey = cleanStr(key);
 
-        // 1. Try to find an input by data-field fuzzy match
         const field = formFields.find(f => cleanStr(f.dataset.field) === targetKey);
-        if (field) {
-            field.value = value;
-            matched = true;
-        }
+        if (field) { field.value = value; matched = true; }
 
-        // 2. Try to find a radio group fuzzy match
         const groupName = radioGroups.find(g => cleanStr(g) === targetKey);
         if (groupName) {
             const val = String(value);
-            // Look for radio with exact value match or common variations
             const radios = document.querySelectorAll(`input[name="${groupName}"]`);
             radios.forEach(r => {
                 if (cleanStr(r.value) === cleanStr(val) || (cleanStr(val).includes(cleanStr(r.value)) && r.value.length > 1)) {
                     r.checked = true;
-                    r.dispatchEvent(new Event('change')); // Trigger visual update
+                    r.dispatchEvent(new Event('change'));
                     matched = true;
                 }
             });
         }
-
-        if (!matched) {
-            unmapped.push(key);
-        }
+        if (!matched) unmapped.push(key);
       });
 
       if (unmapped.length > 0) {
           mappingReport.classList.remove('hidden');
-          mappingReport.innerHTML = `<strong>Note:</strong> Some fields from the document were not mapped because they don't exist on this form: <span class="italic text-gray-500">${unmapped.join(', ')}</span>.`;
+          mappingReport.innerHTML = `<strong>Note:</strong> Unmapped: <span class="italic text-gray-500">${unmapped.join(', ')}</span>.`;
       }
     };
 
     document.querySelectorAll('.accordion-header').forEach(h => {
-      h.addEventListener('click', () => {
-        const target = document.getElementById(h.dataset.target);
-        const arrow = h.querySelector('span:last-child');
-        const isClosed = target.style.maxHeight === '0px' || !target.style.maxHeight;
-
-        if (isClosed) {
-          target.style.maxHeight = target.scrollHeight + 200 + 'px';
-          target.style.paddingTop = '1rem';
-          target.style.paddingBottom = '1rem';
-          arrow.style.transform = 'rotate(180deg)';
-        } else {
-          target.style.maxHeight = '0px';
-          target.style.paddingTop = '0';
-          target.style.paddingBottom = '0';
-          arrow.style.transform = 'rotate(0deg)';
-        }
-      });
+      h.addEventListener('click', () => toggleAccordion(h.dataset.target));
     });
 
     const fileInput = document.getElementById('fileInput');
     const statusBox = document.getElementById('uploadStatus');
 
     async function extractDataFromDocument(base64Data, mimeType) {
-        // Collect existing fields to give the AI a strict schema to follow
         const schemaHint = {};
         formFields.forEach(f => schemaHint[f.dataset.field] = "string");
-        radioGroups.forEach(g => schemaHint[g] = "string (one of the valid options)");
+        radioGroups.forEach(g => schemaHint[g] = "string");
 
-        const systemPrompt = `You are a specialized OCR and data extraction assistant for Training Plan Proposals (TPP). 
-        Extract all data from the document. 
-        MANDATORY: Map the extracted data to these specific JSON keys if possible: ${Object.keys(schemaHint).join(', ')}. 
-        If a field exists in the document but is NOT in this list, include it using its original name.`;
+        const systemPrompt = `Extract TPP data into JSON. Map to: ${Object.keys(schemaHint).join(', ')}.`;
 
         const payload = {
             contents: [{
                 role: "user",
                 parts: [
-                    { text: "Extract and map all fields from this document into the required JSON structure." },
+                    { text: "Extract and map data into JSON." },
                     { inlineData: { mimeType: mimeType, data: base64Data } }
                 ]
             }],
@@ -373,7 +374,6 @@
             generationConfig: { responseMimeType: "application/json" }
         };
 
-        let lastError;
         for (let i = 0; i < 5; i++) {
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
@@ -381,30 +381,29 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error('API request failed');
+                if (!response.ok) throw new Error();
                 const result = await response.json();
                 return JSON.parse(result.candidates[0].content.parts[0].text);
             } catch (err) {
-                lastError = err;
+                if (i === 4) throw err;
                 await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
             }
         }
-        throw lastError;
     }
 
     fileInput.addEventListener('change', async () => {
         const file = fileInput.files[0];
         if (!file) return;
-        statusBox.innerHTML = '<div class="spinner inline-block mr-2 align-middle"></div> <span class="align-middle text-primary font-semibold">AI is mapping PDF fields to web form...</span>';
+        statusBox.innerHTML = '<div class="spinner inline-block mr-2 align-middle"></div> <span class="align-middle text-primary font-semibold">AI is mapping...</span>';
         const reader = new FileReader();
         reader.onload = async (e) => {
             const base64Data = e.target.result.split(',')[1];
             try {
                 const data = await extractDataFromDocument(base64Data, file.type);
                 window.populate(data);
-                statusBox.innerHTML = '<span class="text-green-600 font-bold">✓ Field mapping successful!</span>';
-                const p1 = document.getElementById('p1');
-                p1.style.maxHeight = p1.scrollHeight + 200 + 'px';
+                statusBox.innerHTML = '<span class="text-green-600 font-bold">✓ Success!</span>';
+                // Open first section upon successful load
+                toggleAccordion('p1', true);
             } catch (err) {
                 statusBox.innerHTML = '<span class="text-red-600 font-bold">❌ AI mapping failed.</span>';
             }
@@ -412,7 +411,6 @@
         reader.readAsDataURL(file);
     });
 
-    // Handle visual updates for radios
     document.querySelectorAll('.segmented-control input[type=radio]').forEach(radio => {
         radio.addEventListener('change', () => {
             document.querySelectorAll(`input[name="${radio.name}"]`).forEach(r => {
