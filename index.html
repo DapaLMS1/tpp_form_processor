@@ -15,7 +15,532 @@
 
     .form-container {
       max-width: 1000px;
+      margin: 0 auto;<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TPP Editor Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+    }
+
+    .form-container {
+      max-width: 1100px;
       margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    .section-header {
+      background-color: #4B0082;
+      color: white;
+      padding: 10px 16px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+    }
+
+    .section-body {
+      background-color: #eff6ff;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .subsection-title {
+        grid-column: 1 / -1;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #4B0082;
+        border-bottom: 1px solid #cbd5e1;
+        padding-bottom: 4px;
+        margin-top: 10px;
+        letter-spacing: 0.05em;
+    }
+
+    .input-label {
+      color: #374151;
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      background-color: white;
+      transition: border-color 0.2s;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #4B0082;
+      box-shadow: 0 0 0 2px rgba(75, 0, 130, 0.1);
+    }
+
+    .segmented-control {
+      display: inline-flex;
+      background: white;
+      border: 1px solid #4B0082;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .segmented-control input[type=radio] { display: none; }
+
+    .segmented-control label {
+      padding: 3px 12px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #4B0082;
+    }
+
+    .segmented-control input[type=radio]:checked + label {
+      background-color: #4B0082;
+      color: white;
+    }
+
+    .spinner {
+      border: 2px solid rgba(75, 0, 130, 0.1);
+      border-top: 2px solid #4B0082;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .progress-step {
+        transition: all 0.3s ease;
+        opacity: 0.4;
+    }
+    .progress-step.active {
+        opacity: 1;
+        color: #4B0082;
+        font-weight: bold;
+    }
+  </style>
+</head>
+<body class="p-4 md:p-6">
+
+  <div class="flex justify-between items-start max-w-4xl mx-auto mb-6">
+    <div>
+        <h1 class="text-2xl font-black text-[#4B0082]">TPP Editor Prototype</h1>
+        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Advanced Handwriting Logic Engine</p>
+    </div>
+  </div>
+
+  <section class="max-w-2xl mx-auto mb-10 bg-white p-6 rounded-xl shadow-sm border-2 border-dashed border-gray-200 text-center transition-all hover:border-[#4B0082]">
+    <div class="mb-4 flex flex-col items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        <p class="text-sm font-bold text-gray-700">Upload TPP Image or PDF</p>
+    </div>
+    <input id="fileInput" type="file" accept="application/pdf,image/*" class="hidden"/>
+    <button onclick="document.getElementById('fileInput').click()" class="bg-[#4B0082] text-white px-8 py-2.5 rounded-full text-xs font-bold hover:shadow-lg transition-all">Process New Document</button>
+    
+    <div id="aiFeedback" class="mt-4 flex justify-center gap-6 text-[9px] uppercase tracking-widest font-bold text-gray-400 hidden">
+        <div id="step1" class="progress-step flex items-center gap-2"><div class="spinner w-3 h-3"></div> Uploading</div>
+        <div id="step2" class="progress-step flex items-center gap-2">Analyzing Handwriting</div>
+        <div id="step3" class="progress-step flex items-center gap-2">Mapping Fields</div>
+    </div>
+    <div id="uploadStatus" class="mt-2 text-[11px] font-bold h-4 text-[#4B0082]"></div>
+  </section>
+
+  <main id="tppForm" class="form-container mb-24 opacity-100 transition-opacity duration-500">
+    
+    <!-- 1.1 Apprentice / Trainee Personal Details -->
+    <section>
+      <div class="section-header"><span>1.1 Apprentice / Trainee Personal Details</span><span>▼</span></div>
+      <div class="section-body grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="md:col-span-1">
+          <label class="input-label">Training Plan</label>
+          <div class="segmented-control">
+            <input id="tpNew" name="trainingPlanType" type="radio" value="New"/><label for="tpNew">New</label>
+            <input id="tpAmended" name="trainingPlanType" type="radio" value="Amended"/><label for="tpAmended">Amended</label>
+          </div>
+        </div>
+        <div class="md:col-span-1"><label class="input-label">Training Plan Date</label><input data-field="trainingPlanDate" class="input-field" placeholder="DD/MM/YYYY"/></div>
+        <div class="md:col-span-2"></div>
+
+        <div><label class="input-label">Given Name</label><input data-field="givenName" class="input-field"/></div>
+        <div><label class="input-label">Family Name</label><input data-field="familyName" class="input-field"/></div>
+        <div><label class="input-label">Middle Name</label><input data-field="middleName" class="input-field"/></div>
+        <div><label class="input-label">Date of Birth</label><input data-field="dob" placeholder="DD/MM/YYYY" class="input-field"/></div>
+
+        <div class="md:col-span-2">
+          <label class="input-label">Gender</label>
+          <div class="segmented-control">
+            <input id="gM" name="gender" type="radio" value="Male"/><label for="gM">Male</label>
+            <input id="gF" name="gender" type="radio" value="Female"/><label for="gF">Female</label>
+            <input id="gU" name="gender" type="radio" value="Unspecified"/><label for="gU">Unspecified</label>
+          </div>
+        </div>
+        <div class="md:col-span-2"></div>
+
+        <div class="md:col-span-2"><label class="input-label">Street Address</label><input data-field="streetAddress" class="input-field"/></div>
+        <div><label class="input-label">Suburb</label><input data-field="suburb" class="input-field"/></div>
+        <div><label class="input-label">State</label><input data-field="state" class="input-field"/></div>
+
+        <div><label class="input-label">Postcode</label><input data-field="postcode" class="input-field"/></div>
+        <div><label class="input-label">Mobile</label><input data-field="mobile" class="input-field"/></div>
+        <div><label class="input-label">Telephone</label><input data-field="telephone" class="input-field"/></div>
+        <div><label class="input-label">Email</label><input data-field="email" class="input-field"/></div>
+
+        <div>
+          <label class="input-label">Support Indicator</label>
+          <div class="segmented-control">
+            <input id="siY" name="supportIndicator" type="radio" value="Yes"/><label for="siY">Yes</label>
+            <input id="siN" name="supportIndicator" type="radio" value="No"/><label for="siN">No</label>
+          </div>
+        </div>
+        <div class="md:col-span-3">
+          <label class="input-label">Aboriginal or Torres Strait Islander?</label>
+          <div class="segmented-control">
+            <input id="atsiY" name="atsi" type="radio" value="Yes"/><label for="atsiY">Yes</label>
+            <input id="atsiN" name="atsi" type="radio" value="No"/><label for="atsiN">No</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1.2 Training Details -->
+    <section>
+      <div class="section-header"><span>1.2 Training Details</span><span>▼</span></div>
+      <div class="section-body grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="input-label">Contract Type</label>
+          <div class="segmented-control">
+            <input id="ctA" name="contractType" type="radio" value="Apprentice" /><label for="ctA">Apprentice</label>
+            <input id="ctNT" name="contractType" type="radio" value="New Entrant Trainee" /><label for="ctNT">New Entrant Trainee</label>
+            <input id="ctEW" name="contractType" type="radio" value="Existing Worker Trainee" /><label for="ctEW">Existing Worker Trainee</label>
+          </div>
+        </div>
+        <div>
+          <label class="input-label">Employment Type</label>
+          <div class="segmented-control">
+            <input id="etFT" name="employmentType" type="radio" value="Full Time" /><label for="etFT">Full Time</label>
+            <input id="etPT" name="employmentType" type="radio" value="Part Time" /><label for="etPT">Part Time</label>
+          </div>
+        </div>
+        <div><label class="input-label">Hours Per Week</label><input data-field="hoursPerWeek" class="input-field"/></div>
+        <div><label class="input-label">TC Start Date</label><input data-field="tcStartDate" placeholder="DD/MM/YYYY" class="input-field"/></div>
+        <div><label class="input-label">TC End Date</label><input data-field="tcEndDate" placeholder="DD/MM/YYYY" class="input-field"/></div>
+        <div><label class="input-label">Vocational Title</label><input data-field="vocationalTitle" class="input-field"/></div>
+        <div><label class="input-label">VTO ID</label><input data-field="vtoId" class="input-field"/></div>
+        <div><label class="input-label">Qualification Level</label><input data-field="qualificationLevel" class="input-field"/></div>
+        <div><label class="input-label">National Code</label><input data-field="nationalCode" class="input-field"/></div>
+        
+        <div class="md:col-span-2">
+            <label class="input-label">Mode of Delivery</label>
+            <div class="segmented-control">
+              <input id="mdC" name="modeOfDelivery" type="radio" value="Classroom Based"/><label for="mdC">Classroom Based</label>
+              <input id="mdE" name="modeOfDelivery" type="radio" value="Electronic"/><label for="mdE">Electronic</label>
+              <input id="mdEm" name="modeOfDelivery" type="radio" value="Employment Based"/><label for="mdEm">Employment Based</label>
+              <input id="mdO" name="modeOfDelivery" type="radio" value="Other"/><label for="mdO">Other</label>
+            </div>
+        </div>
+        <div class="md:col-span-2">
+            <label class="input-label">Funding Source</label>
+            <div class="segmented-control">
+              <input id="fsF" name="fundingSource" type="radio" value="Fee for Service"/><label for="fsF">Fee for Service</label>
+              <input id="fsG" name="fundingSource" type="radio" value="Government Subsidised"/><label for="fsG">Government Subsidised</label>
+            </div>
+        </div>
+
+        <div class="subsection-title">Classroom Training Address</div>
+        <div><label class="input-label">Street</label><input data-field="classroomStreet" class="input-field"/></div>
+        <div><label class="input-label">City</label><input data-field="classroomCity" class="input-field"/></div>
+        <div><label class="input-label">State</label><input data-field="classroomState" class="input-field"/></div>
+        <div><label class="input-label">Postcode</label><input data-field="classroomPostcode" class="input-field"/></div>
+
+        <div class="subsection-title">Disability & DAAWS</div>
+        <div>
+            <label class="input-label">Disability</label>
+            <div class="segmented-control">
+              <input id="disY" name="disability" type="radio" value="Yes"/><label for="disY">Yes</label>
+              <input id="disN" name="disability" type="radio" value="No"/><label for="disN">No</label>
+            </div>
+        </div>
+        <div>
+            <label class="input-label">DAAWS</label>
+            <div class="segmented-control">
+              <input id="daawsY" name="daaws" type="radio" value="Yes"/><label for="daawsY">Yes</label>
+              <input id="daawsN" name="daaws" type="radio" value="No"/><label for="daawsN">No</label>
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1.3 ACAP Details -->
+    <section>
+      <div class="section-header"><span>1.3 Apprenticeship Connect Australia Provider (ACAP)</span><span>▼</span></div>
+      <div class="section-body grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-3"><label class="input-label">ACAP Provider Name</label><input data-field="acapProviderName" class="input-field"/></div>
+        <div><label class="input-label">Contact Name</label><input data-field="acapContactName" class="input-field"/></div>
+        <div><label class="input-label">Email</label><input data-field="acapEmail" class="input-field"/></div>
+        <div><label class="input-label">Phone</label><input data-field="acapPhone" class="input-field"/></div>
+        <div><label class="input-label">Mobile</label><input data-field="acapMobile" class="input-field"/></div>
+        <div><label class="input-label">Date</label><input data-field="acapDate" class="input-field" placeholder="DD/MM/YYYY"/></div>
+      </div>
+    </section>
+
+    <!-- 1.4 RTO Details -->
+    <section>
+      <div class="section-header"><span>1.4 Registered Training Organisation (RTO)</span><span>▼</span></div>
+      <div class="section-body grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div><label class="input-label">Start Date</label><input data-field="rtoStartDate" class="input-field" placeholder="DD/MM/YYYY"/></div>
+        <div><label class="input-label">Estimated End Date</label><input data-field="rtoEndDate" class="input-field" placeholder="DD/MM/YYYY"/></div>
+        <div class="md:col-span-1"></div>
+        <div class="md:col-span-2"><label class="input-label">Legal Name</label><input data-field="rtoLegalName" class="input-field"/></div>
+        <div><label class="input-label">Trading Name</label><input data-field="rtoTradingName" class="input-field"/></div>
+        <div><label class="input-label">National Code</label><input data-field="rtoNationalCode" class="input-field"/></div>
+        <div><label class="input-label">ABN</label><input data-field="rtoABN" class="input-field"/></div>
+        <div><label class="input-label">Contact Name</label><input data-field="rtoContactName" class="input-field"/></div>
+        <div><label class="input-label">Email</label><input data-field="rtoEmail" class="input-field"/></div>
+        <div><label class="input-label">Mobile</label><input data-field="rtoMobile" class="input-field"/></div>
+      </div>
+    </section>
+
+    <!-- 1.5 Employer Details -->
+    <section>
+      <div class="section-header"><span>1.5 Employer Details</span><span>▼</span></div>
+      <div class="section-body grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label class="input-label">Legal Name</label><input data-field="employerLegalName" class="input-field"/></div>
+        <div><label class="input-label">Licence No.</label><input data-field="employerLicenceNo" class="input-field"/></div>
+        <div><label class="input-label">Trading Name</label><input data-field="employerTradingName" class="input-field"/></div>
+        <div><label class="input-label">ABN</label><input data-field="employerABN" class="input-field"/></div>
+        
+        <div class="subsection-title">Main Employer Address</div>
+        <div><label class="input-label">Street Address</label><input data-field="employerStreetAddress" class="input-field"/></div>
+        <div><label class="input-label">Suburb</label><input data-field="employerSuburb" class="input-field"/></div>
+        <div><label class="input-label">State</label><input data-field="employerState" class="input-field"/></div>
+        <div><label class="input-label">Postcode</label><input data-field="employerPostcode" class="input-field"/></div>
+        
+        <div><label class="input-label">Contact Name</label><input data-field="employerContactName" class="input-field"/></div>
+        <div><label class="input-label">Mobile</label><input data-field="employerMobile" class="input-field"/></div>
+        
+        <div class="subsection-title">Workplace Training Address</div>
+        <div><label class="input-label">Street</label><input data-field="workplaceStreet" class="input-field"/></div>
+        <div><label class="input-label">Suburb</label><input data-field="workplaceSuburb" class="input-field"/></div>
+        <div><label class="input-label">State</label><input data-field="workplaceState" class="input-field"/></div>
+        <div><label class="input-label">Postcode</label><input data-field="workplacePostcode" class="input-field"/></div>
+        
+        <div class="subsection-title">Host Employer</div>
+        <div>
+            <label class="input-label">Host Employer?</label>
+            <div class="segmented-control">
+              <input id="hostY" name="isHostEmployer" type="radio" value="Yes"/><label for="hostY">Yes</label>
+              <input id="hostN" name="isHostEmployer" type="radio" value="No"/><label for="hostN">No</label>
+            </div>
+        </div>
+        <div><label class="input-label">Trading Name</label><input data-field="hostTradingName" class="input-field"/></div>
+        <div><label class="input-label">Contact Name</label><input data-field="hostContactName" class="input-field"/></div>
+        <div><label class="input-label">Email</label><input data-field="hostEmail" class="input-field"/></div>
+      </div>
+    </section>
+
+    <!-- 1.6 Sign-off -->
+    <section>
+      <div class="section-header"><span>1.6 Acceptance of Agreement (Sign-off)</span><span>▼</span></div>
+      <div class="section-body grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <div class="subsection-title">Registered Training Organisation</div>
+        <div><label class="input-label">Print Name</label><input data-field="rtoSignatoryName" class="input-field"/></div>
+        <div><label class="input-label">Position</label><input data-field="rtoSignatoryPosition" class="input-field"/></div>
+        <div><label class="input-label">Date</label><input data-field="rtoSignatoryDate" class="input-field"/></div>
+
+        <div class="subsection-title">Employer</div>
+        <div><label class="input-label">Print Name</label><input data-field="employerSignatoryName" class="input-field"/></div>
+        <div><label class="input-label">Position</label><input data-field="employerSignatoryPosition" class="input-field"/></div>
+        <div><label class="input-label">Date</label><input data-field="employerSignatoryDate" class="input-field"/></div>
+
+        <div class="subsection-title">Apprentice / Trainee</div>
+        <div><label class="input-label">Print Name</label><input data-field="apprenticeSignatoryName" class="input-field"/></div>
+        <div class="md:col-span-1"></div>
+        <div><label class="input-label">Date</label><input data-field="apprenticeSignatoryDate" class="input-field"/></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    // Set to empty string - environment will provide runtime key
+    const apiKey = ""; 
+
+    const tppForm = document.getElementById('tppForm');
+    const aiFeedback = document.getElementById('aiFeedback');
+    const statusBox = document.getElementById('uploadStatus');
+
+    const formFields = Array.from(document.querySelectorAll('[data-field]'));
+    const radioGroups = Array.from(new Set(Array.from(document.querySelectorAll('input[type="radio"]')).map(r => r.name)));
+
+    function setStep(stepNum) {
+        document.querySelectorAll('.progress-step').forEach((el, idx) => {
+            el.classList.toggle('active', idx + 1 === stepNum);
+            const spin = el.querySelector('.spinner');
+            if (spin) spin.style.display = (idx + 1 === stepNum) ? 'block' : 'none';
+        });
+    }
+
+    function populate(obj) {
+      if (!obj) return;
+      tppForm.style.opacity = "1";
+      Object.entries(obj).forEach(([key, value]) => {
+        if (value === null || value === undefined) return;
+        const cleanKey = key.toLowerCase();
+        
+        const field = formFields.find(f => f.dataset.field.toLowerCase() === cleanKey);
+        if (field) field.value = value;
+        
+        const group = radioGroups.find(g => g.toLowerCase() === cleanKey);
+        if (group) {
+            const radios = document.querySelectorAll(`input[name="${group}"]`);
+            radios.forEach(r => {
+                const radioVal = r.value.toLowerCase();
+                const actualVal = value.toString().toLowerCase();
+                if (actualVal === radioVal || (actualVal === 'true' && radioVal === 'yes') || (actualVal === 'false' && radioVal === 'no')) {
+                    r.checked = true;
+                }
+            });
+        }
+      });
+    }
+
+    async function runExtraction(base64Data, mimeType) {
+        setStep(1);
+        statusBox.innerText = "Initiating extraction engine...";
+        
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const fieldNames = [...formFields.map(f => f.dataset.field), ...radioGroups].join(', ');
+
+        const payload = {
+            contents: [{
+                parts: [
+                    { text: `System: Act as a high-precision form data extractor.
+                    Analyze the provided TPP document images. 
+                    Extract handwritten entries and checkmarks into the requested fields.
+                    
+                    Fields: ${fieldNames}. 
+                    
+                    Important:
+                    1. Distinguish between 'employerStreetAddress' and 'workplaceStreet'.
+                    2. Check Section 1.3 for ACAP Provider info.
+                    3. Mark Yes/No for Disability/DAAWS/Host Employer.
+                    4. Extract dates in DD/MM/YYYY format.
+                    
+                    Return ONLY a structured JSON object.` },
+                    { inlineData: { mimeType, data: base64Data } }
+                ]
+            }],
+            generationConfig: { 
+                responseMimeType: "application/json",
+                temperature: 0.1
+            }
+        };
+
+        const fetchWithRetry = async (retries = 5, delay = 1000) => {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.status === 401) {
+                    throw new Error("Authentication failed (401). Please check if the environment session is still active.");
+                }
+                
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(`HTTP ${response.status}: ${errData.error?.message || 'Unknown Server Error'}`);
+                }
+                
+                return await response.json();
+            } catch (err) {
+                if (retries > 0 && response.status !== 401) {
+                    statusBox.innerText = `Retrying connection (${retries} left)...`;
+                    await new Promise(res => setTimeout(res, delay));
+                    return fetchWithRetry(retries - 1, delay * 2);
+                }
+                throw err;
+            }
+        };
+
+        const data = await fetchWithRetry();
+        
+        setStep(2);
+        statusBox.innerText = "Handwriting analyzed. Mapping data structures...";
+        
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) throw new Error("Processing failed: AI returned empty content.");
+
+        setStep(3);
+        try {
+            const parsed = JSON.parse(rawText.replace(/```json/g, '').replace(/```/g, '').trim());
+            statusBox.innerText = "Syncing with editor UI...";
+            return parsed;
+        } catch (e) {
+            console.error("Parse Error:", rawText);
+            throw new Error("Mapping Error: Could not interpret AI response as valid data.");
+        }
+    }
+
+    const fileInput = document.getElementById('fileInput');
+    fileInput.addEventListener('change', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        aiFeedback.classList.remove('hidden');
+        statusBox.innerHTML = 'Connecting to extraction engine...';
+        tppForm.style.opacity = "0.5";
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const base64 = e.target.result.split(',')[1];
+                const result = await runExtraction(base64, file.type);
+                populate(result);
+                statusBox.innerHTML = '<span class="text-green-600">✓ Data Sync Successful</span>';
+                aiFeedback.classList.add('hidden');
+            } catch (err) {
+                statusBox.innerHTML = `<span class="text-red-600">⚠️ ${err.message}</span>`;
+                aiFeedback.classList.add('hidden');
+                tppForm.style.opacity = "1";
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+
+    document.querySelectorAll('.section-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const body = header.nextElementSibling;
+            const arrow = header.querySelector('span:last-child');
+            const isHidden = body.style.display === 'none';
+            body.style.display = isHidden ? 'grid' : 'none';
+            arrow.textContent = isHidden ? '▼' : '▶';
+        });
+    });
+  </script>
+</body>
+</html>
       background: white;
       border-radius: 8px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
