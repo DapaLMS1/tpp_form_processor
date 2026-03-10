@@ -129,7 +129,24 @@
 </head>
 <body class="p-6">
 
-  <h1 class="text-2xl font-black text-center text-primary mb-8">Training Plan Proposal (TPP) Editor</h1>
+  <div class="flex justify-between items-start max-w-4xl mx-auto mb-8">
+    <h1 class="text-2xl font-black text-primary">Training Plan Proposal (TPP) Editor</h1>
+    <button id="settingsBtn" class="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-600" title="API Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+    </button>
+  </div>
+
+  <!-- API Key Config (Hidden by default) -->
+  <section id="apiConfig" class="max-w-2xl mx-auto mb-6 bg-white p-4 rounded-xl shadow-sm border border-indigo-100 hidden">
+    <div class="flex flex-col gap-2">
+      <label class="text-xs font-bold text-primary uppercase">Gemini API Key (Required for GitHub)</label>
+      <div class="flex gap-2">
+        <input id="customApiKey" type="password" placeholder="Paste your API key here..." class="input-field flex-grow"/>
+        <button id="saveKeyBtn" class="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90 transition-opacity" style="background-color: #4B0082;">Save Key</button>
+      </div>
+      <p class="text-[10px] text-gray-500 italic">Key is saved in your browser's local storage. Leave empty to use environment default.</p>
+    </div>
+  </section>
 
   <!-- Upload Area -->
   <section class="max-w-2xl mx-auto mb-10 bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center">
@@ -380,7 +397,37 @@
 
   <script type="module">
     // Critical: Empty key for runtime injection
-    const apiKey = ""; 
+    const defaultApiKey = ""; 
+    
+    // UI Elements for API Config
+    const settingsBtn = document.getElementById('settingsBtn');
+    const apiConfigPanel = document.getElementById('apiConfig');
+    const customApiKeyInput = document.getElementById('customApiKey');
+    const saveKeyBtn = document.getElementById('saveKeyBtn');
+
+    // Load key from localStorage on start
+    let activeApiKey = localStorage.getItem('GEMINI_API_KEY') || defaultApiKey;
+    if (localStorage.getItem('GEMINI_API_KEY')) {
+        customApiKeyInput.value = localStorage.getItem('GEMINI_API_KEY');
+    }
+
+    // Toggle panel
+    settingsBtn.addEventListener('click', () => {
+        apiConfigPanel.classList.toggle('hidden');
+    });
+
+    // Save key
+    saveKeyBtn.addEventListener('click', () => {
+        const newKey = customApiKeyInput.value.trim();
+        if (newKey) {
+            localStorage.setItem('GEMINI_API_KEY', newKey);
+            activeApiKey = newKey;
+        } else {
+            localStorage.removeItem('GEMINI_API_KEY');
+            activeApiKey = defaultApiKey;
+        }
+        apiConfigPanel.classList.add('hidden');
+    });
 
     const formFields = Array.from(document.querySelectorAll('[data-field]'));
     const radioGroups = Array.from(new Set(Array.from(document.querySelectorAll('input[type="radio"]')).map(r => r.name)));
@@ -410,7 +457,8 @@
 
     async function extractWithRetry(payload) {
         const delays = [1000, 2000, 4000, 8000];
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        // Use activeApiKey which defaults to environment key but can be overridden
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`;
         
         for (let i = 0; i <= delays.length; i++) {
             try {
@@ -420,7 +468,6 @@
                     body: JSON.stringify(payload)
                 });
                 
-                // If response is not OK, we throw to trigger retry (unless 401 which usually implies key issue)
                 if (!response.ok) {
                     throw new Error(`Status ${response.status}`);
                 }
@@ -464,7 +511,6 @@
                 window.populate(JSON.parse(jsonText));
                 statusBox.innerHTML = '✓ Extraction Successful';
             } catch (err) {
-                // Simplified error reporting to avoid UI confusion with transient status codes
                 statusBox.innerHTML = '❌ Extraction Failed';
                 console.error("Extraction error:", err);
             }
