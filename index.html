@@ -14,23 +14,6 @@
     }
 
     .form-container {
-      max-width: 1000px;
-      margin: 0 auto;<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TPP Editor Prototype</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6;
-    }
-
-    .form-container {
       max-width: 1100px;
       margin: 0 auto;
       background: white;
@@ -154,6 +137,13 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
         <p class="text-sm font-bold text-gray-700">Upload TPP Image or PDF</p>
     </div>
+
+    <!-- API Key Input Field -->
+    <div class="mb-4 max-w-xs mx-auto">
+        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Optional: Manual Gemini API Key</label>
+        <input id="manualApiKey" type="password" placeholder="Enter API Key if 401 occurs" class="w-full px-3 py-2 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#4B0082] text-center" />
+    </div>
+
     <input id="fileInput" type="file" accept="application/pdf,image/*" class="hidden"/>
     <button onclick="document.getElementById('fileInput').click()" class="bg-[#4B0082] text-white px-8 py-2.5 rounded-full text-xs font-bold hover:shadow-lg transition-all">Process New Document</button>
     
@@ -383,11 +373,12 @@
 
   <script type="module">
     // Set to empty string - environment will provide runtime key
-    const apiKey = ""; 
+    const envApiKey = ""; 
 
     const tppForm = document.getElementById('tppForm');
     const aiFeedback = document.getElementById('aiFeedback');
     const statusBox = document.getElementById('uploadStatus');
+    const manualKeyInput = document.getElementById('manualApiKey');
 
     const formFields = Array.from(document.querySelectorAll('[data-field]'));
     const radioGroups = Array.from(new Set(Array.from(document.querySelectorAll('input[type="radio"]')).map(r => r.name)));
@@ -428,7 +419,10 @@
         setStep(1);
         statusBox.innerText = "Initiating extraction engine...";
         
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        // Use manual key if provided, otherwise fallback to environment key
+        const activeKey = manualKeyInput.value.trim() || envApiKey;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeKey}`;
+        
         const fieldNames = [...formFields.map(f => f.dataset.field), ...radioGroups].join(', ');
 
         const payload = {
@@ -465,7 +459,7 @@
                 });
                 
                 if (response.status === 401) {
-                    throw new Error("Authentication failed (401). Please check if the environment session is still active.");
+                    throw new Error("Authentication failed (401). Please check if the API key is correct or the environment session is active.");
                 }
                 
                 if (!response.ok) {
@@ -475,7 +469,8 @@
                 
                 return await response.json();
             } catch (err) {
-                if (retries > 0 && response.status !== 401) {
+                // Check if response exists before checking status
+                if (retries > 0 && (!err.message.includes('401'))) {
                     statusBox.innerText = `Retrying connection (${retries} left)...`;
                     await new Promise(res => setTimeout(res, delay));
                     return fetchWithRetry(retries - 1, delay * 2);
@@ -537,510 +532,6 @@
             body.style.display = isHidden ? 'grid' : 'none';
             arrow.textContent = isHidden ? '▼' : '▶';
         });
-    });
-  </script>
-</body>
-</html>
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-      overflow: hidden;
-    }
-
-    .section-header {
-      background-color: #4B0082;
-      color: white;
-      padding: 10px 16px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .section-body {
-      background-color: #eff6ff;
-      padding: 24px 32px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .input-label {
-      color: #374151;
-      font-size: 0.75rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-      display: block;
-    }
-
-    .input-field {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      background-color: white;
-      transition: border-color 0.2s;
-    }
-
-    .input-field:focus {
-      outline: none;
-      border-color: #4B0082;
-      box-shadow: 0 0 0 2px rgba(75, 0, 130, 0.1);
-    }
-
-    .segmented-control {
-      display: inline-flex;
-      background: white;
-      border: 1px solid #4B0082;
-      border-radius: 9999px;
-      overflow: hidden;
-      margin-top: 4px;
-    }
-
-    .segmented-control input[type=radio] { display: none; }
-
-    .segmented-control label {
-      padding: 4px 16px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: #4B0082;
-    }
-
-    .segmented-control input[type=radio]:checked + label {
-      background-color: #4B0082;
-      color: white;
-    }
-
-    .sub-heading {
-      color: #4B0082;
-      font-size: 0.875rem;
-      font-weight: 800;
-      margin-top: 1.5rem;
-      margin-bottom: 0.75rem;
-      border-bottom: 1px solid rgba(75, 0, 130, 0.2);
-      padding-bottom: 4px;
-    }
-
-    .sign-off-card {
-      background: white;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-
-    .sign-off-title {
-      font-size: 0.7rem;
-      font-weight: 800;
-      color: #4B0082;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 12px;
-    }
-
-    .spinner {
-      border: 2px solid rgba(75, 0, 130, 0.1);
-      border-top: 2px solid #4B0082;
-      border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
-</head>
-<body class="p-6">
-
-  <div class="flex justify-between items-start max-w-4xl mx-auto mb-8">
-    <h1 class="text-2xl font-black text-primary">Training Plan Proposal (TPP) Editor</h1>
-    <button id="settingsBtn" class="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-600" title="API Settings">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-    </button>
-  </div>
-
-  <!-- API Key Config (Hidden by default) -->
-  <section id="apiConfig" class="max-w-2xl mx-auto mb-6 bg-white p-4 rounded-xl shadow-sm border border-indigo-100 hidden">
-    <div class="flex flex-col gap-2">
-      <label class="text-xs font-bold text-primary uppercase">Gemini API Key (Required for GitHub)</label>
-      <div class="flex gap-2">
-        <input id="customApiKey" type="password" placeholder="Paste your API key here..." class="input-field flex-grow"/>
-        <button id="saveKeyBtn" class="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90 transition-opacity" style="background-color: #4B0082;">Save Key</button>
-      </div>
-      <p class="text-[10px] text-gray-500 italic">Key is saved in your browser's local storage. Leave empty to use environment default.</p>
-    </div>
-  </section>
-
-  <!-- Upload Area -->
-  <section class="max-w-2xl mx-auto mb-10 bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center">
-    <p class="text-xs font-bold text-gray-600 mb-4">Upload TPP Document (PDF, Image) for AI Extraction</p>
-    <input id="fileInput" type="file" accept="application/pdf,image/*" class="text-xs file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"/>
-    <div id="uploadStatus" class="mt-4 text-xs font-bold h-4 text-primary flex items-center justify-center"></div>
-  </section>
-
-  <main class="form-container mb-24">
-    
-    <!-- 1.1 Apprentice / Trainee Personal Details -->
-    <section>
-      <div class="section-header"><span>1.1 Apprentice / Trainee Personal Details</span><span>▲</span></div>
-      <div class="section-body grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
-          <label class="input-label">Training Plan</label>
-          <div class="segmented-control">
-            <input id="tpNew" name="trainingPlanType" type="radio" value="New"/><label for="tpNew">New</label>
-            <input id="tpAmended" name="trainingPlanType" type="radio" value="Amended"/><label for="tpAmended">Amended</label>
-          </div>
-        </div>
-        <div><label class="input-label">Training Plan Date</label><input data-field="trainingPlanDate" placeholder="DD/MM/YYYY" class="input-field"/></div>
-        <div class="hidden md:block"></div>
-
-        <div><label class="input-label">Given Name</label><input data-field="givenName" class="input-field"/></div>
-        <div><label class="input-label">Family Name</label><input data-field="familyName" class="input-field"/></div>
-        <div><label class="input-label">Middle Name</label><input data-field="middleName" class="input-field"/></div>
-        
-        <div><label class="input-label">Date of Birth</label><input data-field="dob" placeholder="DD/MM/YYYY" class="input-field"/></div>
-        <div class="md:col-span-2">
-          <label class="input-label">Gender</label>
-          <div class="segmented-control">
-            <input id="gM" name="gender" type="radio" value="Male"/><label for="gM">Male</label>
-            <input id="gF" name="gender" type="radio" value="Female"/><label for="gF">Female</label>
-            <input id="gU" name="gender" type="radio" value="Unspecified"/><label for="gU">Unspecified</label>
-          </div>
-        </div>
-
-        <div><label class="input-label">Street Address</label><input data-field="streetAddress" class="input-field"/></div>
-        <div><label class="input-label">Suburb</label><input data-field="suburb" class="input-field"/></div>
-        <div><label class="input-label">State</label><input data-field="state" class="input-field"/></div>
-        
-        <div><label class="input-label">Postcode</label><input data-field="postcode" class="input-field"/></div>
-        <div><label class="input-label">Mobile</label><input data-field="mobile" class="input-field"/></div>
-        <div><label class="input-label">Telephone</label><input data-field="telephone" class="input-field"/></div>
-        
-        <div>
-          <label class="input-label">Support Indicator</label>
-          <div class="segmented-control">
-            <input id="supY" name="supportIndicator" type="radio" value="Yes"/><label for="supY">Yes</label>
-            <input id="supN" name="supportIndicator" type="radio" value="No"/><label for="supN">No</label>
-          </div>
-        </div>
-        <div><label class="input-label">Email</label><input data-field="email" class="input-field"/></div>
-        <div>
-          <label class="input-label">Aboriginal or Torres Strait Islander?</label>
-          <div class="segmented-control">
-            <input id="atsiY" name="atsi" type="radio" value="Yes"/><label for="atsiY">Yes</label>
-            <input id="atsiN" name="atsi" type="radio" value="No"/><label for="atsiN">No</label>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 1.2 Training Details -->
-    <section>
-      <div class="section-header"><span>1.2 Training Details</span><span>▲</span></div>
-      <div class="section-body grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="md:col-span-2">
-          <label class="input-label">Contract Type</label>
-          <div class="segmented-control">
-            <input id="ctA" name="contractType" type="radio" value="Apprentice" /><label for="ctA">Apprentice</label>
-            <input id="ctNT" name="contractType" type="radio" value="New Entrant Trainee" /><label for="ctNT">New Entrant Trainee</label>
-            <input id="ctEW" name="contractType" type="radio" value="Existing Worker Trainee" /><label for="ctEW">Existing Worker Trainee</label>
-          </div>
-        </div>
-        <div>
-          <label class="input-label">Employment Type</label>
-          <div class="segmented-control">
-            <input id="etFT" name="employmentType" type="radio" value="Full Time" /><label for="etFT">Full Time</label>
-            <input id="etPT" name="employmentType" type="radio" value="Part Time" /><label for="etPT">Part Time</label>
-          </div>
-        </div>
-        <div><label class="input-label">Hours Per Week</label><input data-field="hoursPerWeek" class="input-field"/></div>
-        
-        <div><label class="input-label">TC Start Date</label><input data-field="tcStartDate" placeholder="DD/MM/YYYY" class="input-field"/></div>
-        <div><label class="input-label">TC End Date</label><input data-field="tcEndDate" placeholder="DD/MM/YYYY" class="input-field"/></div>
-        
-        <div><label class="input-label">Vocational Title</label><input data-field="vocationalTitle" class="input-field"/></div>
-        <div><label class="input-label">VTO ID</label><input data-field="vtoId" class="input-field"/></div>
-        
-        <div><label class="input-label">Qualification Level</label><input data-field="qualificationLevel" class="input-field"/></div>
-        <div><label class="input-label">National Code</label><input data-field="nationalCode" class="input-field"/></div>
-        
-        <div class="md:col-span-2">
-          <label class="input-label">Mode of Delivery</label>
-          <div class="segmented-control">
-            <input id="modClass" name="modeOfDelivery" type="radio" value="Classroom Based" /><label for="modClass">Classroom Based</label>
-            <input id="modElec" name="modeOfDelivery" type="radio" value="Electronic" /><label for="modElec">Electronic</label>
-            <input id="modEmp" name="modeOfDelivery" type="radio" value="Employment Based" /><label for="modEmp">Employment Based</label>
-            <input id="modOth" name="modeOfDelivery" type="radio" value="Other" /><label for="modOth">Other</label>
-          </div>
-        </div>
-
-        <div class="md:col-span-2">
-          <label class="input-label">Funding Source</label>
-          <div class="segmented-control">
-            <input id="fsFS" name="fundingSource" type="radio" value="Fee for Service" /><label for="fsFS">Fee for Service</label>
-            <input id="fsGS" name="fundingSource" type="radio" value="Government Subsidised" /><label for="fsGS">Government Subsidised</label>
-          </div>
-        </div>
-
-        <div class="md:col-span-2">
-          <div class="sub-heading">Classroom Training Address</div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label class="input-label">Street</label><input data-field="streetRTO" class="input-field"/></div>
-            <div><label class="input-label">City</label><input data-field="cityRTO" class="input-field"/></div>
-            <div><label class="input-label">State</label><input data-field="stateRTO" class="input-field"/></div>
-            <div><label class="input-label">Postcode</label><input data-field="postcodeRTO" class="input-field"/></div>
-          </div>
-        </div>
-
-        <div>
-          <label class="input-label">Disability</label>
-          <div class="segmented-control">
-            <input id="disY" name="disability" type="radio" value="Yes" /><label for="disY">Yes</label>
-            <input id="disN" name="disability" type="radio" value="No" /><label for="disN">No</label>
-          </div>
-        </div>
-        <div>
-          <label class="input-label">DAAWS</label>
-          <div class="segmented-control">
-            <input id="daawY" name="daaws" type="radio" value="Yes" /><label for="daawY">Yes</label>
-            <input id="daawN" name="daaws" type="radio" value="No" /><label for="daawN">No</label>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 1.3 ACAP Details -->
-    <section>
-      <div class="section-header"><span>1.3 Apprenticeship Connect Australia Provider (ACAP)</span><span>▲</span></div>
-      <div class="section-body grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="md:col-span-2"><label class="input-label">ACAP Provider Name</label><input data-field="acapProviderName" class="input-field"/></div>
-        <div><label class="input-label">Contact Name</label><input data-field="acapContactName" class="input-field"/></div>
-        <div><label class="input-label">Email</label><input data-field="acapEmail" class="input-field"/></div>
-        <div><label class="input-label">Phone</label><input data-field="acapTel" class="input-field"/></div>
-        <div><label class="input-label">Mobile</label><input data-field="acapMob" class="input-field"/></div>
-        <div><label class="input-label">Date</label><input data-field="acapDate" class="input-field"/></div>
-      </div>
-    </section>
-
-    <!-- 1.4 RTO Details -->
-    <section>
-      <div class="section-header"><span>1.4 Registered Training Organisation (RTO)</span><span>▲</span></div>
-      <div class="section-body grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div><label class="input-label">Start Date</label><input data-field="rtoStartDate" class="input-field"/></div>
-        <div><label class="input-label">Estimated End Date</label><input data-field="estimatedRTOEndDate" class="input-field"/></div>
-        <div><label class="input-label">Legal Name</label><input data-field="rtoLegalName" class="input-field"/></div>
-        <div><label class="input-label">Trading Name</label><input data-field="rtoTradingName" class="input-field"/></div>
-        <div><label class="input-label">National Code</label><input data-field="rtoNationalCode" class="input-field"/></div>
-        <div><label class="input-label">ABN</label><input data-field="rtoABN" class="input-field"/></div>
-        <div><label class="input-label">Contact Name</label><input data-field="rtoContactName" class="input-field"/></div>
-        <div><label class="input-label">Email</label><input data-field="rtoEmail" class="input-field"/></div>
-        <div class="md:col-span-2"><label class="input-label">Mobile</label><input data-field="rtoMobile" class="input-field"/></div>
-      </div>
-    </section>
-
-    <!-- 1.5 Employer Details -->
-    <section>
-      <div class="section-header"><span>1.5 Employer Details</span><span>▲</span></div>
-      <div class="section-body grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div><label class="input-label">Legal Name</label><input data-field="employerLegalName" class="input-field"/></div>
-        <div><label class="input-label">Licence No.</label><input data-field="employerLicenceNo" class="input-field"/></div>
-        <div><label class="input-label">Trading Name</label><input data-field="employerTradingName" class="input-field"/></div>
-        <div><label class="input-label">ABN</label><input data-field="employerABN" class="input-field"/></div>
-        
-        <div class="md:col-span-2">
-          <div class="sub-heading">Main Employer Address</div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label class="input-label">Street Address</label><input data-field="employerMainStreet" class="input-field"/></div>
-            <div><label class="input-label">Suburb</label><input data-field="employerMainSuburb" class="input-field"/></div>
-            <div><label class="input-label">State</label><input data-field="employerMainState" class="input-field"/></div>
-            <div><label class="input-label">Postcode</label><input data-field="employerMainPostcode" class="input-field"/></div>
-          </div>
-        </div>
-
-        <div><label class="input-label">Contact Name</label><input data-field="employerContactNameTop" class="input-field"/></div>
-        <div><label class="input-label">Mobile</label><input data-field="employerMobileTop" class="input-field"/></div>
-
-        <div class="md:col-span-2">
-          <div class="sub-heading">Workplace Training Address</div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label class="input-label">Street</label><input data-field="employerStreetAddress" class="input-field"/></div>
-            <div><label class="input-label">Suburb</label><input data-field="employerSuburb" class="input-field"/></div>
-            <div><label class="input-label">State</label><input data-field="employerState" class="input-field"/></div>
-            <div><label class="input-label">Postcode</label><input data-field="employerPostcode" class="input-field"/></div>
-          </div>
-        </div>
-        
-        <div>
-          <label class="input-label">Host Employer</label>
-          <div class="segmented-control">
-            <input id="hostY" name="hostEmployer" type="radio" value="Yes" /><label for="hostY">Yes</label>
-            <input id="hostN" name="hostEmployer" type="radio" value="No" /><label for="hostN">No</label>
-          </div>
-        </div>
-        <div><label class="input-label">Trading Name</label><input data-field="employerTradingName2" class="input-field"/></div>
-        
-        <div><label class="input-label">Contact Name</label><input data-field="employerContactName" class="input-field"/></div>
-        <div><label class="input-label">Email</label><input data-field="employerEmail" class="input-field"/></div>
-      </div>
-    </section>
-
-    <!-- 1.6 Sign-off -->
-    <section>
-      <div class="section-header"><span>1.6 Acceptance of Agreement (Sign-off)</span><span>▲</span></div>
-      <div class="section-body">
-        <div class="sign-off-card">
-          <div class="sign-off-title">Registered Training Organisation</div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><label class="input-label">Print Name</label><input data-field="rtoPrintName" class="input-field"/></div>
-            <div><label class="input-label">Position</label><input data-field="rtoPosition" class="input-field"/></div>
-            <div><label class="input-label">Date</label><input data-field="rtoDate" class="input-field"/></div>
-          </div>
-        </div>
-
-        <div class="sign-off-card">
-          <div class="sign-off-title">Employer</div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><label class="input-label">Print Name</label><input data-field="employerAcceptancePrintName" class="input-field"/></div>
-            <div><label class="input-label">Position</label><input data-field="employerPosition" class="input-field"/></div>
-            <div><label class="input-label">Date</label><input data-field="employerDate" class="input-field"/></div>
-          </div>
-        </div>
-
-        <div class="sign-off-card">
-          <div class="sign-off-title">Apprentice / Trainee</div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label class="input-label">Print Name</label><input data-field="apprenticePrintName" class="input-field"/></div>
-            <div><label class="input-label">Date</label><input data-field="apprenticeDate" class="input-field"/></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <script type="module">
-    // Critical: Empty key for runtime injection
-    const defaultApiKey = ""; 
-    
-    // UI Elements for API Config
-    const settingsBtn = document.getElementById('settingsBtn');
-    const apiConfigPanel = document.getElementById('apiConfig');
-    const customApiKeyInput = document.getElementById('customApiKey');
-    const saveKeyBtn = document.getElementById('saveKeyBtn');
-
-    // Load key from localStorage on start
-    let activeApiKey = localStorage.getItem('GEMINI_API_KEY') || defaultApiKey;
-    if (localStorage.getItem('GEMINI_API_KEY')) {
-        customApiKeyInput.value = localStorage.getItem('GEMINI_API_KEY');
-    }
-
-    // Toggle panel
-    settingsBtn.addEventListener('click', () => {
-        apiConfigPanel.classList.toggle('hidden');
-    });
-
-    // Save key
-    saveKeyBtn.addEventListener('click', () => {
-        const newKey = customApiKeyInput.value.trim();
-        if (newKey) {
-            localStorage.setItem('GEMINI_API_KEY', newKey);
-            activeApiKey = newKey;
-        } else {
-            localStorage.removeItem('GEMINI_API_KEY');
-            activeApiKey = defaultApiKey;
-        }
-        apiConfigPanel.classList.add('hidden');
-    });
-
-    const formFields = Array.from(document.querySelectorAll('[data-field]'));
-    const radioGroups = Array.from(new Set(Array.from(document.querySelectorAll('input[type="radio"]')).map(r => r.name)));
-
-    const cleanStr = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
-
-    window.populate = (obj = {}) => {
-      Object.entries(obj).forEach(([key, value]) => {
-        if (value === null || value === undefined) return;
-        const targetKey = cleanStr(key);
-
-        const field = formFields.find(f => cleanStr(f.dataset.field) === targetKey);
-        if (field) field.value = value;
-
-        const groupName = radioGroups.find(g => cleanStr(g) === targetKey);
-        if (groupName) {
-            const val = String(value);
-            const radios = document.querySelectorAll(`input[name="${groupName}"]`);
-            radios.forEach(r => {
-                if (cleanStr(r.value) === cleanStr(val) || (cleanStr(val).includes(cleanStr(r.value)) && r.value.length > 1)) {
-                    r.checked = true;
-                }
-            });
-        }
-      });
-    };
-
-    async function extractWithRetry(payload) {
-        const delays = [1000, 2000, 4000, 8000];
-        // Use activeApiKey which defaults to environment key but can be overridden
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`;
-        
-        for (let i = 0; i <= delays.length; i++) {
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Status ${response.status}`);
-                }
-                
-                const result = await response.json();
-                return result.candidates?.[0]?.content?.parts?.[0]?.text;
-            } catch (err) {
-                if (i === delays.length) throw err;
-                await new Promise(r => setTimeout(r, delays[i]));
-            }
-        }
-    }
-
-    const fileInput = document.getElementById('fileInput');
-    const statusBox = document.getElementById('uploadStatus');
-
-    fileInput.addEventListener('change', async () => {
-        const file = fileInput.files[0];
-        if (!file) return;
-        
-        statusBox.innerHTML = '<div class="spinner mr-2"></div> AI Extracting...';
-        
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const base64Data = e.target.result.split(',')[1];
-            const fieldList = [...formFields.map(f => f.dataset.field), ...radioGroups];
-            
-            const payload = {
-                contents: [{
-                    parts: [
-                        { text: "Extract detailed TPP data to JSON matching these keys: " + fieldList.join(', ') + ". Dates DD/MM/YYYY. Document covers sections 1.1 to 1.6." },
-                        { inlineData: { mimeType: file.type, data: base64Data } }
-                    ]
-                }],
-                systemInstruction: { parts: [{ text: "Extract Training Plan Proposal data. Be extremely precise. Map names to givenName/familyName. Map address details to suburb/state/postcode correctly." }] },
-                generationConfig: { responseMimeType: "application/json" }
-            };
-
-            try {
-                const jsonText = await extractWithRetry(payload);
-                window.populate(JSON.parse(jsonText));
-                statusBox.innerHTML = '✓ Extraction Successful';
-            } catch (err) {
-                statusBox.innerHTML = '❌ Extraction Failed';
-                console.error("Extraction error:", err);
-            }
-        };
-        reader.readAsDataURL(file);
     });
   </script>
 </body>
